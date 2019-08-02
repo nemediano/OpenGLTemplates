@@ -16,4 +16,4 @@ I tested the sample in an Ubuntu 18.04 standard installation. It also requires y
 
 In such scenario the sample is build with a single command line:
 
-`g++ -Wall triangle.cpp -o triangle -lGLEW -lGL -lglfw -lm`
+`g++ -std=c++11 -Wall triangle.cpp -o triangle -lGLEW -lGL -lglfw -lm`

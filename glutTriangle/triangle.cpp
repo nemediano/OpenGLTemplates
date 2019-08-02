@@ -15,7 +15,7 @@
 
 // I have compiled in Ubuntu 18.04, usign standar installation of freeglut, glew and GLM
 // i.e installed from official repos
-// g++ -Wall triangle.cpp -o triangle -lGLEW -lGL -lglut -lm
+// g++ -std=c++11 -Wall triangle.cpp -o triangle -lGLEW -lGL -lglut -lm
 
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))

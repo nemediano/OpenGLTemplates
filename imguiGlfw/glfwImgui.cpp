@@ -4,6 +4,10 @@
 #include <sstream>
 #include <vector>
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -38,6 +42,8 @@ void init_glfw();
 void load_OpenGL();
 void init_program();
 void create_primitives_and_send_to_gpu();
+void setup_menu();
+void create_menu();
 void render();
 void update();
 void free_resources();
@@ -57,10 +63,12 @@ std::string enviroment_info();
 int main (int argc, char* argv[]) {
   init_glfw();
   load_OpenGL();
+  setup_menu();
   init_program();
   register_glfw_callbacks();
 
   while (!glfwWindowShouldClose(window)) {
+    create_menu();
     render();
     update();
     glfwSwapBuffers(window);
@@ -69,6 +77,49 @@ int main (int argc, char* argv[]) {
   free_resources();
 
   return EXIT_SUCCESS;
+}
+
+void setup_menu() {
+  // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    const char* glsl_version{"#version 130"};
+    ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+void create_menu() {
+
+  // Start the Dear ImGui frame
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+
+  static bool show_demo_window;
+  static bool show_another_window;
+  static glm::vec3 clear_color;
+  static int counter;
+  static float f;
+
+  ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+  ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+  ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+  ImGui::Checkbox("Another Window", &show_another_window);
+
+  ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+  ImGui::ColorEdit3("clear color", glm::value_ptr(clear_color)); // Edit 3 floats representing a color
+
+  if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+      counter++;
+  ImGui::SameLine();
+  ImGui::Text("counter = %d", counter);
+
+  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  ImGui::End();
 }
 
 void init_glfw() {
@@ -84,7 +135,7 @@ void init_glfw() {
   }
   // Library was initializated, now try window and context
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -259,6 +310,7 @@ void create_primitives_and_send_to_gpu() {
 }
 
 void render() {
+  ImGui::Render(); // Prepare to render our menu, before clearing buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(program);
   /************************************************************************/
@@ -304,6 +356,8 @@ void render() {
   //Unbind and clean
   glBindVertexArray(0);
   glUseProgram(0);
+  /* Render menu after the geomery of our actual app*/
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void update() {
@@ -346,6 +400,9 @@ void glfw_error_callback(int error, const char* description) {
 }
 
 void free_resources() {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   /* Delete OpenGL program */
   glDetachShader(program, vertex_shader);
   glDetachShader(program, fragment_shader);

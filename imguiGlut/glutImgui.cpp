@@ -3,6 +3,10 @@
 #include <string>
 #include <sstream>
 #include <vector>
+// Dear imgui related headers
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glut.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -31,6 +35,7 @@ int nTriangles = 0;
 bool rotating = false;
 float current_angle = 0.0f;
 int last_time = 0;
+std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
 // Function declarations
@@ -38,6 +43,8 @@ void init_freeglut();
 void load_OpenGL();
 void init_program();
 void create_primitives_and_send_to_gpu();
+void setup_menu();
+void create_menu();
 void create_glut_callbacks();
 void exit_glut();
 //Glut callback functions
@@ -57,6 +64,7 @@ int main(int argc, char* argv[]) {
   glutInit(&argc, argv);
   init_freeglut();
   load_OpenGL();
+  setup_menu();
   init_program();
 
   create_glut_callbacks();
@@ -65,14 +73,50 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
+void setup_menu() {
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+  ImGui::StyleColorsDark();
+  ImGui_ImplGLUT_Init();
+  ImGui_ImplGLUT_InstallFuncs();
+
+  const char* glsl_version{"#version 130"};
+  ImGui_ImplOpenGL3_Init(glsl_version);
+
+}
+
+void create_menu() {
+  // Start the Dear ImGui frame
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGLUT_NewFrame();
+
+  // Draw the menu
+  ImGui::Begin("Triangle's basic menu");
+    ImGui::Text("Options");
+    if (ImGui::Checkbox("Rotate", &rotating)) { //Imgui's controls return true on interaction
+      current_angle = 0.0f;
+    }
+    if (ImGui::CollapsingHeader("Enviroment info:")) {
+      ImGui::Text("%s", context_info.c_str());
+    }
+    if (ImGui::CollapsingHeader("Application stats")) {
+      ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+      ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    }
+  ImGui::End();
+}
+
 void init_freeglut() {
-  glutInitContextVersion(4, 5);
+  glutInitContextVersion(4, 6);
   glutInitContextProfile(GLUT_CORE_PROFILE);
   glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
   glutSetOption(GLUT_MULTISAMPLE, 4);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
-  glutInitWindowSize(512, 512);
-  window = glutCreateWindow("Hello world OpenGL - freeglut");
+  glutInitWindowSize(900, 600);
+  window = glutCreateWindow("OpenGL Menu sample - freeglut");
 }
 
 void init_program() {
@@ -165,7 +209,7 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  cout << enviroment_info() << endl;
+  context_info = enviroment_info();
   /************************************************************************/
   /*                    OpenGL Debug context                              */
   /************************************************************************/
@@ -256,6 +300,9 @@ void idle() {
 }
 
 void reshape(int new_window_width, int new_window_height) {
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize.x = float(new_window_width);
+  io.DisplaySize.y = float(new_window_height);
   glViewport(0, 0, new_window_width, new_window_height);
   glutPostRedisplay();
 }
@@ -318,10 +365,19 @@ void display() {
   glBindVertexArray(0);
   glUseProgram(0);
 
+  /* Render menu after the geometry of our actual app*/
+  create_menu();
+  ImGui::Render(); // Prepare to render our menu, before clearing buffers
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
   glutSwapBuffers();
 }
 
 void exit_glut() {
+  /* Release imgui resources */
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGLUT_Shutdown();
+  ImGui::DestroyContext();
   /* Delete OpenGL program */
   glDetachShader(program, vertex_shader);
   glDetachShader(program, fragment_shader);
@@ -416,15 +472,16 @@ std::string enviroment_info() {
   info << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
   info << "Software: " << endl;
   info << "\tDriver:" << endl;
-  info << "\t\tUsing OpenGL version: " << glGetString(GL_VERSION) << endl;
-  info << "\t\tUsing GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+  info << "\t\tOpenGL version: " << glGetString(GL_VERSION) << endl;
+  info << "\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
   info << "\tLibraries:" << endl;
-  info << "\t\tUsing GLEW version: " << glewGetString(GLEW_VERSION) << endl;
+  info << "\t\tGLEW version: " << glewGetString(GLEW_VERSION) << endl;
   int ver = glutGet(GLUT_VERSION);
-  info << "\t\tUsing freeglut version: " << ver / 10000 << "." << (ver / 100) % 100 <<
+  info << "\t\tfreeglut version: " << ver / 10000 << "." << (ver / 100) % 100 <<
             "." << ver % 100 << endl;
-  info << "\t\tUsing GLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
+  info << "\t\tGLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
        << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
+  info << "\t\tDear Imgui version: " << ImGui::GetVersion();
 
   return info.str();
 }

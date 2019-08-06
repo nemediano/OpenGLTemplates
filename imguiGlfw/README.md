@@ -1,8 +1,8 @@
 # Dear Imgui example using glfw
 
-A minimal working example of an OpenGL program that uses [Dear imgui](http://github.com/ocornut/imgui) to implement a user menu. The sample uses [GLEW](http://glew.sourceforge.net/) as an extension loader, [GLM](http://glm.g-truc.net/) for the mathematics and [glfw](http://freeglut.sourceforge.net/) as window manager.
+A minimal working example of an OpenGL program that uses [Dear imgui](http://github.com/ocornut/imgui) to implement a user menu. The sample uses [GLEW](http://glew.sourceforge.net/) as an extension loader, [GLM](http://glm.g-truc.net/) for the mathematics and [glfw](http://www.glfw.org/) as window manager.
 
-![Triangle](../img/menuGlfw.png)
+![Glfw Menu](../img/menuGlfw.png)
 
 Note that the code is written in a way to prefer clarity in presentation over performance in the execution or good codding patterns.
 

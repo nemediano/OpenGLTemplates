@@ -1,19 +1,13 @@
-# OpenGL template
+# Dear Imgui example using freeglut
 
-A minimal working example of an OpenGL program using [GLEW](http://glew.sourceforge.net/), [GLM](http://glm.g-truc.net/) and [freeglut](http://freeglut.sourceforge.net/).
+A minimal working example of an OpenGL program that uses [Dear imgui](http://github.com/ocornut/imgui) to implement a user menu. The sample uses [GLEW](http://glew.sourceforge.net/) as an extension loader, [GLM](http://glm.g-truc.net/) for the mathematics and [freeglut](http://freeglut.sourceforge.net/) as window manager.
 
-![Triangle](../img/triangleGlut.png)
+![Freeglut Menu](../img/menuGlut.png)
 
 Note that the code is written in a way to prefer clarity in presentation over performance in the execution or good codding patterns.
 
-Some of the features:
-
-* All the code in a single [source file](triangle.cpp).
-* Print the OpenGL context info and libraries version to the console.
-* Creates an [OpenGL debug context](http://www.khronos.org/opengl/wiki/Debug_Output) to print OpenGL related error to the console.
+All the *sample* code is in a single [source file](glutImgui.cpp). However, the Dear imgui requires several additional files, those are contained in the `imgui` folder. Imgui files were taken from the library [website](http://github.com/ocornut/imgui) and are not modified. Therefore you can always replace them with newer versions of the same files.
 
 I tested the sample in an Ubuntu 18.04 standard installation. It also requires your graphics drivers already installed. And then, I installed all the libraries from the official repositories.
 
-In such scenario the sample is build with a single command line:
-
-`g++ -Wall triangle.cpp -o triangle -lGLEW -lGL -lglut -lm`
+I provide a sample [makefile](Makefile) that works on the environment described above. For other platforms or IDEs you can deduct what you need to do by reading it.

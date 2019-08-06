@@ -7,7 +7,7 @@ SOURCES += imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
 CXXFLAGS += -Wall -std=c++11
-LIBS = -lGLEW -lGL -lglfw -lm -DIMGUI_IMPL_OPENGL_LOADER_GLEW
+LIBS = -lGLEW -lGL -lglfw -lm
 
 ##---------------------------------------------------------------------
 ## BUILD RULES
@@ -17,7 +17,7 @@ LIBS = -lGLEW -lGL -lglfw -lm -DIMGUI_IMPL_OPENGL_LOADER_GLEW
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LIBS)
 
 %.o:imgui/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LIBS)
+	$(CXX) $(CXXFLAGS) -DIMGUI_IMPL_OPENGL_LOADER_GLEW -c -o $@ $< $(LIBS)
 
 
 all: $(EXE)

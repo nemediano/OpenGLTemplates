@@ -17,3 +17,5 @@ I tested the sample in an Ubuntu 18.04 standard installation. It also requires y
 In such scenario the sample is build with a single command line:
 
 `g++ -std=c++11 -Wall triangle.cpp -o triangle -lGLEW -lGL -lglut -lm`
+
+If your program builds, but crashes at execution, it is very likely that you do not have the required version of OpenGL. In that case you want to edit (or even comment) the context creation lines to match you current software.

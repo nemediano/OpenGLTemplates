@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-
+// Dear imgui related headers
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -35,6 +35,7 @@ int nTriangles = 0;
 bool rotating = false;
 float current_angle = 0.0f;
 double last_time = 0.0;
+std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
 // Function declarations
@@ -57,7 +58,7 @@ void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenu
                             GLsizei length, const GLchar *message, const void *userParam);
 // Print shader compilation errors
 void print_shader_log(GLint const shader);
-// get infor form the used libraries versions
+// get info from the used libraries versions
 std::string enviroment_info();
 
 int main (int argc, char* argv[]) {
@@ -81,44 +82,34 @@ int main (int argc, char* argv[]) {
 
 void setup_menu() {
   // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    const char* glsl_version{"#version 130"};
-    ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGui::StyleColorsDark();
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  const char* glsl_version{"#version 130"};
+  ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
 void create_menu() {
-
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
-
-  static bool show_demo_window;
-  static bool show_another_window;
-  static glm::vec3 clear_color;
-  static int counter;
-  static float f;
-
-  ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-  ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-  ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-  ImGui::Checkbox("Another Window", &show_another_window);
-
-  ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-  ImGui::ColorEdit3("clear color", glm::value_ptr(clear_color)); // Edit 3 floats representing a color
-
-  if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-      counter++;
-  ImGui::SameLine();
-  ImGui::Text("counter = %d", counter);
-
-  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  // Draw the menu
+  ImGui::Begin("Triangle's basic menu");
+    ImGui::Text("Options");
+    if (ImGui::Checkbox("Rotate", &rotating)) { //Imgui's controls return true on interaction
+      current_angle = 0.0f;
+    }
+    if (ImGui::CollapsingHeader("Enviroment info:")) {
+      ImGui::Text("%s", context_info.c_str());
+    }
+    if (ImGui::CollapsingHeader("Application stats")) {
+      ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+      ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    }
   ImGui::End();
 }
 
@@ -140,7 +131,7 @@ void init_glfw() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  window = glfwCreateWindow(512, 512, "Hello world OpenGL - glfw", nullptr, nullptr);
+  window = glfwCreateWindow(900, 600, "OpenGL Menu sample - glfw", nullptr, nullptr);
   if (!window) {
     // Window or context creation failed
     cerr << "OpenGL context not available" << endl;
@@ -163,7 +154,7 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  cout << enviroment_info() << endl;
+  context_info = enviroment_info();
   /************************************************************************/
   /*                    OpenGL Debug context                              */
   /************************************************************************/
@@ -356,7 +347,7 @@ void render() {
   //Unbind and clean
   glBindVertexArray(0);
   glUseProgram(0);
-  /* Render menu after the geomery of our actual app*/
+  /* Render menu after the geometry of our actual app*/
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
@@ -400,6 +391,7 @@ void glfw_error_callback(int error, const char* description) {
 }
 
 void free_resources() {
+  /* Release imgui resources */
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
@@ -495,14 +487,15 @@ std::string enviroment_info() {
   info << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
   info << "Software: " << endl;
   info << "\tDriver:" << endl;
-  info << "\t\tUsing OpenGL version: " << glGetString(GL_VERSION) << endl;
-  info << "\t\tUsing GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+  info << "\t\tOpenGL version: " << glGetString(GL_VERSION) << endl;
+  info << "\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
   info << "\tLibraries:" << endl;
-  info << "\t\tUsing GLEW version: " << glewGetString(GLEW_VERSION) << endl;
-  info << "\t\tUsing GLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
+  info << "\t\tGLEW version: " << glewGetString(GLEW_VERSION) << endl;
+  info << "\t\tGLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
        << "." << GLFW_VERSION_REVISION << endl;
-  info << "\t\tUsing GLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
+  info << "\t\tGLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
        << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
+  info << "\t\tDear Imgui version: " << ImGui::GetVersion();
 
   return info.str();
 }

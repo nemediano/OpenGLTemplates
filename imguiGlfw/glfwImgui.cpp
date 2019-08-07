@@ -35,6 +35,7 @@ int nTriangles = 0;
 bool rotating = false;
 float current_angle = 0.0f;
 double last_time = 0.0;
+bool mouse_drag = false;
 std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -53,6 +54,9 @@ void register_glfw_callbacks();
 void glfw_error_callback(int error, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void resize_callback(GLFWwindow* window, int new_window_width, int new_window_height);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
+
 // OpenGL's debug logger callback (needs context 4.3 or above)
 void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                             GLsizei length, const GLchar *message, const void *userParam);
@@ -369,15 +373,52 @@ void update() {
 void register_glfw_callbacks() {
   glfwSetWindowSizeCallback(window, resize_callback);
   glfwSetKeyCallback(window, key_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  glfwSetCursorPosCallback(window, cursor_position_callback);
+  //glfwSetMousePosCallback(mouse_motion_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureKeyboard) {
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, GLFW_TRUE);
   } else if (key ==  GLFW_KEY_R && action == GLFW_PRESS) {
     rotating = !rotating;
     current_angle = 0.0f;
   }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureMouse) {
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
+  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    //std::cout << "Click in!" << std::endl;
+    mouse_drag = true;
+  } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    //std::cout << "Click out" << std::endl;
+    mouse_drag = false;
+  }
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureMouse) {
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
+  //if (mouse_drag) {
+  //  std::cout << "(" << xpos << ", " << ypos << ")" << std::endl;
+  //}
 }
 
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {

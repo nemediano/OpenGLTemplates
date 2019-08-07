@@ -35,6 +35,7 @@ int nTriangles = 0;
 bool rotating = false;
 float current_angle = 0.0f;
 int last_time = 0;
+bool mouse_drag = false;
 std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -52,6 +53,8 @@ void display();
 void idle();
 void reshape(int new_window_width, int new_window_height);
 void keyboard(unsigned char key, int mouse_x, int mouse_y);
+void mouse_button(int button, int state, int mouse_x, int mouse_y);
+void mouse_dragging(int mouse_x, int mouse_y);
 // OpenGL's debug logger callback (needs context 4.3 or above)
 void opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                            GLsizei length, const GLchar *message, const void *userParam);
@@ -81,6 +84,8 @@ void setup_menu() {
 
   ImGui::StyleColorsDark();
   ImGui_ImplGLUT_Init();
+  //Not sure if we need to call this if we provide replacement
+  //for some function but not for all. It works as expected here
   ImGui_ImplGLUT_InstallFuncs();
 
   const char* glsl_version{"#version 130"};
@@ -279,6 +284,8 @@ void create_glut_callbacks() {
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutKeyboardFunc(keyboard);
+  glutMotionFunc(mouse_dragging);
+  glutMouseFunc(mouse_button);
   glutIdleFunc(idle);
 }
 
@@ -307,7 +314,47 @@ void reshape(int new_window_width, int new_window_height) {
   glutPostRedisplay();
 }
 
+void mouse_button(int button, int state, int mouse_x, int mouse_y) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureMouse) {
+    ImGui_ImplGLUT_MouseFunc(button, state, mouse_x, mouse_y);
+    glutPostRedisplay();
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    //std::cout << "Click in!" << std::endl;
+    mouse_drag = true;
+  } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+    //std::cout << "Click out!" << std::endl;
+    mouse_drag = false;
+  }
+}
+
+void mouse_dragging(int mouse_x, int mouse_y) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureMouse) {
+    ImGui_ImplGLUT_MotionFunc(mouse_x, mouse_y);
+    glutPostRedisplay();
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
+  //if (mouse_drag) {
+  //  std::cout << "(" << mouse_x << ", " << mouse_y << ")" << std::endl;
+  //}
+}
+
 void keyboard(unsigned char key, int mouse_x, int mouse_y) {
+  ImGuiIO& io = ImGui::GetIO();
+  //Imgui wants this event, since it happen inside the GUI
+  if (io.WantCaptureKeyboard) {
+    ImGui_ImplGLUT_KeyboardFunc(key, mouse_x, mouse_y);
+    glutPostRedisplay();
+    return;
+  }
+  //The event happen outside the GUI, your application should try to handle it
   switch(key) {
     case 27: //Esc key
       exit_glut();

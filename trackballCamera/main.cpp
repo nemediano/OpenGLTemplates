@@ -30,9 +30,9 @@ GLuint fragment_shader;
 GLuint program;
 // Global variables for the program logic
 int nTriangles;
-Trackball trackball;
-bool mouse_drag;
-int zoom_level;
+Trackball trackball;  //Trackball to change the camera rotation
+bool mouse_drag;      //To keep track the mouse drag for macera retation
+int zoom_level;       //Zoom evel to complement the trackball camera
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
 // Function declarations
@@ -257,9 +257,9 @@ void render() {
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
   glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 3.5f);
   glm::vec3 camera_eye = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::mat4 V = glm::lookAt(camera_position, camera_eye, camera_up);
-  // Use trackball to get a rotation applied to the camera's pose
-  V = V * trackball.getRotation();
+  glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
+  // Use trackball to get a rotation applied to the camera's initial pose
+  glm::mat4 V = Cam_Init_Pos * trackball.getRotation();
   //Projection
   int width;
   int height;

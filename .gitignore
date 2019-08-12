@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+imguiGlut/glutImgui
+imguiGlfw/glfwImgui
+trackballCamera/trackballSample
+glutTriangle/triangle
+glfwTriangle/triangle
+
+# Imgui's config files
+*.ini
+

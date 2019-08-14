@@ -35,6 +35,8 @@ bool mouse_drag;      //To keep track the mouse drag for macera retation
 int zoom_level;       //Zoom evel to complement the trackball camera
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
+// See if this platform supports raw mouse motion
+bool raw_mouse_supported;
 // Function declarations
 void init_glfw();
 void load_OpenGL();
@@ -89,6 +91,8 @@ void init_glfw() {
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
+  // Query if this platform support raw mouse motion
+  raw_mouse_supported = glfwRawMouseMotionSupported();
   // Context setting to happen before OpenGL's extension loader
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
@@ -151,7 +155,6 @@ void init_program() {
   fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &fragment_shader_src[0];
   glShaderSource(fragment_shader, 1, &start, nullptr);
-
 
   program = glCreateProgram();
   glAttachShader(program, vertex_shader);
@@ -309,16 +312,28 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
 }
 
 void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
-  //The event happen outside the GUI, your application should try to handle it
+
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     mouse_drag = true;
     double mouse_x;
     double mouse_y;
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
     trackball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
+    //These options are provided by GLFW designed for this kind of use case
+    //However, I find them more confussing than helping. (Un)comment to test
+    //glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //if (raw_mouse_supported) {
+    //  glfwSetInputMode(windowPtr, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    //}
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
     trackball.endDrag();
     mouse_drag = false;
+    //These options are provided by GLFW designed for this kind of use case
+    //However, I find them more confussing than helping. (Un)comment to test
+    //glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    //if (raw_mouse_supported) {
+    //  glfwSetInputMode(windowPtr, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+    //}
   }
 }
 

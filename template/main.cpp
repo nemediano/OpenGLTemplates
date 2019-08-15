@@ -47,7 +47,6 @@ public:
   int y_pos;
   int width;
   int height;
-  int refreshRate;
 };
 WindowState window_state;
 // Function declarations
@@ -60,6 +59,7 @@ void create_menu();
 void render();
 void update();
 void free_resources();
+void change_window_mode();
 // GLFW related callbacks
 void register_glfw_callbacks();
 void glfw_error_callback(int error, const char* description);
@@ -146,13 +146,15 @@ void init_glfw() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  window = glfwCreateWindow(900, 600, "OpenGL Menu sample - glfw", nullptr, nullptr);
+  window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!window) {
     // Window or context creation failed
     cerr << "OpenGL context not available" << endl;
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
+  // Save window state
+  window_state.monitorPtr = glfwGetPrimaryMonitor();
   // Context setting to happen before OpenGL's extension loader
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
@@ -398,9 +400,11 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   //The event happen outside the GUI, your application should try to handle it
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, GLFW_TRUE);
-  } else if (key ==  GLFW_KEY_R && action == GLFW_PRESS) {
+  } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
     rotating = !rotating;
     current_angle = 0.0f;
+  } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
+    change_window_mode();
   }
 }
 
@@ -440,6 +444,23 @@ void glfw_error_callback(int error, const char* description) {
   using std::cerr;
   using std::endl;
   cerr << "GLFW Error: " << description << endl;
+}
+
+void change_window_mode() {
+  //Windowed windows return null as their monitor
+  GLFWmonitor* monitor = glfwGetWindowMonitor(window);
+
+  if (monitor) { // Go to windowed mode
+    window_state.monitorPtr = monitor;
+    glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
+        window_state.width, window_state.height, 0);
+  } else { // go to full screen
+    glfwGetWindowPos(window, &window_state.x_pos, &window_state.y_pos);
+    glfwGetWindowSize(window, &window_state.width, &window_state.height);
+    const GLFWvidmode* mode = glfwGetVideoMode(window_state.monitorPtr);
+    glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
+        mode->height, mode->refreshRate);
+  }
 }
 
 void free_resources() {

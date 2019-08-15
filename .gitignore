@@ -35,6 +35,7 @@ imguiGlfw/glfwImgui
 trackballCamera/trackballSample
 glutTriangle/triangle
 glfwTriangle/triangle
+template/template
 
 # Imgui's config files
 *.ini

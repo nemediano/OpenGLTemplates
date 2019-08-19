@@ -17,6 +17,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "ui/trackball.h"
+
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 #define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
@@ -36,6 +38,7 @@ bool rotating = false;
 float current_angle = 0.0f;
 double last_time = 0.0;
 bool mouse_drag = false;
+int zoom_level = 0;
 std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -49,6 +52,7 @@ public:
   int height;
 };
 WindowState window_state;
+ui::Trackball ball;
 // Function declarations
 void init_glfw();
 void load_OpenGL();
@@ -63,11 +67,11 @@ void change_window_mode();
 // GLFW related callbacks
 void register_glfw_callbacks();
 void glfw_error_callback(int error, const char* description);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void resize_callback(GLFWwindow* window, int new_window_width, int new_window_height);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-
+void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods);
+void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height);
+void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods);
+void cursor_position_callback(GLFWwindow* windowPtr, double xpos, double ypos);
+void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
 // OpenGL's debug logger callback (needs context 4.3 or above)
 void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                             GLsizei length, const GLchar *message, const void *userParam);
@@ -265,7 +269,14 @@ void init_program() {
   //Initialize some basic rendering state
   glEnable(GL_DEPTH_TEST);
   //Dark gray background color
-  glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  // Initialize trackball camera
+  int width;
+  int height;
+  glfwGetWindowSize(window, &width, &height);
+  ball.setWindowSize(width, height);
 }
 
 void create_primitives_and_send_to_gpu() {
@@ -276,14 +287,58 @@ void create_primitives_and_send_to_gpu() {
   };
 
   std::vector<Vertex> vertices;
-  vertices.push_back({ { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } }); //0
-  vertices.push_back({ {  1.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } }); //1
-  vertices.push_back({ {  0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }); //2
+  vertices.push_back({ { -1.0f, -1.0f, -1.0f }, { 0.15f, 0.15f, 0.15f } }); //0
+  vertices.push_back({ { -1.0f, -1.0f,  1.0f }, { 0.15f, 0.15f, 0.85f } }); //1
+  vertices.push_back({ { -1.0f,  1.0f, -1.0f }, { 0.15f, 0.85f, 0.15f } }); //2
+  vertices.push_back({ { -1.0f,  1.0f,  1.0f }, { 0.15f, 0.85f, 0.85f } }); //3
+  vertices.push_back({ {  1.0f, -1.0f, -1.0f }, { 0.85f, 0.15f, 0.15f } }); //4
+  vertices.push_back({ {  1.0f, -1.0f,  1.0f }, { 0.85f, 0.15f, 0.85f } }); //5
+  vertices.push_back({ {  1.0f,  1.0f, -1.0f }, { 0.85f, 0.85f, 0.15f } }); //7
+  vertices.push_back({ {  1.0f,  1.0f,  1.0f }, { 0.85f, 0.85f, 0.85f } }); //8
 
   std::vector<unsigned short> indices;
+  // Top
+  indices.push_back(2);
+  indices.push_back(7);
+  indices.push_back(6);
+  indices.push_back(2);
+  indices.push_back(3);
+  indices.push_back(7);
+  // Buttom
+  indices.push_back(0);
+  indices.push_back(4);
+  indices.push_back(5);
+  indices.push_back(0);
+  indices.push_back(5);
+  indices.push_back(1);
+  // Left
+  indices.push_back(0);
+  indices.push_back(3);
+  indices.push_back(2);
   indices.push_back(0);
   indices.push_back(1);
+  indices.push_back(3);
+  // Right
+  indices.push_back(7);
+  indices.push_back(4);
+  indices.push_back(6);
+  indices.push_back(7);
+  indices.push_back(5);
+  indices.push_back(4);
+  // Front
+  indices.push_back(3);
+  indices.push_back(5);
+  indices.push_back(7);
+  indices.push_back(3);
+  indices.push_back(1);
+  indices.push_back(5);
+  // Back
   indices.push_back(2);
+  indices.push_back(6);
+  indices.push_back(4);
+  indices.push_back(2);
+  indices.push_back(4);
+  indices.push_back(0);
 
   nTriangles = indices.size() / 3;
 
@@ -337,13 +392,15 @@ void render() {
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
   glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 3.5f);
   glm::vec3 camera_eye = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::mat4 V = glm::lookAt(camera_position, camera_eye, camera_up);
+  glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
+  // Use trackball to get a rotation applied to the camera's initial pose
+  glm::mat4 V = Cam_Init_Pos * ball.getRotation();
   //Projection
   int width;
   int height;
   glfwGetWindowSize(window, &width, &height);
   GLfloat aspect = float(width) / float(height);
-  GLfloat fovy = TAU / 8.0f;
+  GLfloat fovy = TAU / 8.0f + zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
   glm::mat4 P = glm::perspective(fovy, aspect, zNear, zFar);
@@ -388,7 +445,7 @@ void register_glfw_callbacks() {
   glfwSetKeyCallback(window, key_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetCursorPosCallback(window, cursor_position_callback);
-  //glfwSetMousePosCallback(mouse_motion_callback);
+  glfwSetScrollCallback(window, scroll_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
@@ -408,7 +465,7 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   }
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
   ImGuiIO& io = ImGui::GetIO();
   //Imgui wants this event, since it happen inside the GUI
   if (io.WantCaptureMouse) {
@@ -416,28 +473,37 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
   }
   //The event happen outside the GUI, your application should try to handle it
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-    //std::cout << "Click in!" << std::endl;
     mouse_drag = true;
+    double mouse_x;
+    double mouse_y;
+    glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
+    ball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-    //std::cout << "Click out" << std::endl;
+    ball.endDrag();
     mouse_drag = false;
   }
 }
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mouse_y) {
   ImGuiIO& io = ImGui::GetIO();
   //Imgui wants this event, since it happen inside the GUI
   if (io.WantCaptureMouse) {
     return;
   }
-  //The event happen outside the GUI, your application should try to handle it
-  //if (mouse_drag) {
-  //  std::cout << "(" << xpos << ", " << ypos << ")" << std::endl;
-  //}
+
+  if (mouse_drag) {
+    ball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
+  }
+}
+
+void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
+  zoom_level += int(y_offset);
+  zoom_level = glm::clamp(zoom_level, -5, 5);
 }
 
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   glViewport(0, 0, new_window_width, new_window_height);
+  ball.setWindowSize(new_window_width, new_window_height);
 }
 
 void glfw_error_callback(int error, const char* description) {

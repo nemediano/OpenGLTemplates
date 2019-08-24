@@ -144,11 +144,11 @@ void init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Library was initializated, now try window and context
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  //glfwWindowHint(GLFW_SAMPLES, 4);
+  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!window) {
@@ -456,7 +456,7 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   }
   //The event happen outside the GUI, your application should try to handle it
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(windowPtr, GLFW_TRUE);
+    glfwSetWindowShouldClose(windowPtr, 1);
   } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
     rotating = !rotating;
     current_angle = 0.0f;
@@ -518,14 +518,14 @@ void change_window_mode() {
 
   if (monitor) { // Go to windowed mode
     window_state.monitorPtr = monitor;
-    glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
-        window_state.width, window_state.height, 0);
+    //glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
+    //    window_state.width, window_state.height, 0);
   } else { // go to full screen
     glfwGetWindowPos(window, &window_state.x_pos, &window_state.y_pos);
     glfwGetWindowSize(window, &window_state.width, &window_state.height);
     const GLFWvidmode* mode = glfwGetVideoMode(window_state.monitorPtr);
-    glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
-        mode->height, mode->refreshRate);
+    //glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
+    //    mode->height, mode->refreshRate);
   }
 }
 

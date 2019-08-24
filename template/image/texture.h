@@ -31,5 +31,5 @@ namespace image {
     friend Texture defaultStencil(float cutoff, unsigned int size);
     friend Texture chessBoard(unsigned int size, unsigned int cells, glm::vec3 black, glm::vec3 white);
   };
-}
+} // namespace image
 #endif

@@ -518,14 +518,14 @@ void change_window_mode() {
 
   if (monitor) { // Go to windowed mode
     window_state.monitorPtr = monitor;
-    //glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
-    //    window_state.width, window_state.height, 0);
+    glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
+        window_state.width, window_state.height, 0);
   } else { // go to full screen
     glfwGetWindowPos(window, &window_state.x_pos, &window_state.y_pos);
     glfwGetWindowSize(window, &window_state.width, &window_state.height);
     const GLFWvidmode* mode = glfwGetVideoMode(window_state.monitorPtr);
-    //glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
-    //    mode->height, mode->refreshRate);
+    glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
+        mode->height, mode->refreshRate);
   }
 }
 

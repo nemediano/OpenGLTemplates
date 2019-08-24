@@ -1,6 +1,7 @@
 #ifndef TEXTURE_H_
 #define TEXTURE_H_
 
+
 #include <string>
 #include <vector>
 
@@ -32,4 +33,5 @@ namespace image {
     friend Texture chessBoard(unsigned int size, unsigned int cells, glm::vec3 black, glm::vec3 white);
   };
 } // namespace image
+
 #endif

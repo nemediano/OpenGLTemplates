@@ -22,7 +22,7 @@ Texture::~Texture() {
 }
 
 bool Texture::load_texture(const std::string& input_file_name) {
-  
+
   FIBITMAP* tempImg = FreeImage_Load(FreeImage_GetFileType(input_file_name.c_str(), 0), input_file_name.c_str());
   if (!tempImg) {
     std::cerr << "Could not load image: " << input_file_name << std::endl;
@@ -51,12 +51,12 @@ bool Texture::save(const std::string& output_png_file) const {
   const int bytesPerPixel = 4;
   unsigned char* tmpBuffer = new unsigned char[m_width * m_height * bytesPerPixel];
   std::copy(m_data.begin(), m_data.end(), tmpBuffer);
-  
+
   FIBITMAP* image = FreeImage_ConvertFromRawBits(tmpBuffer, m_width, m_height, m_width * bytesPerPixel, 32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, FALSE);
   FreeImage_Save(FIF_PNG, image, output_png_file.c_str(), 0);
 
   FreeImage_Unload(image);
-  
+
   delete[] tmpBuffer;
 
   return true;

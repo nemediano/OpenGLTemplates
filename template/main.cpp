@@ -16,6 +16,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "common.h"
+
 #include "ui/trackball.h"
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
@@ -23,8 +25,7 @@
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 #define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
-// Window and context handle
-GLFWwindow* window = nullptr;
+
 // Location for shader variables
 GLint u_PVM_location = -1;
 GLint a_position_loc = -1;
@@ -79,11 +80,11 @@ int main (int argc, char* argv[]) {
   init_program();
   register_glfw_callbacks();
 
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(common::window)) {
     create_menu();
     render();
     update();
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(common::window);
     glfwPollEvents();
   }
   free_resources();
@@ -98,7 +99,7 @@ void setup_menu() {
   ImGuiIO& io = ImGui::GetIO(); (void)io;
 
   ImGui::StyleColorsDark();
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplGlfw_InitForOpenGL(common::window, true);
   const char* glsl_version{"#version 130"};
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
@@ -142,8 +143,8 @@ void init_glfw() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
-  if (!window) {
+  common::window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
+  if (!common::window) {
     // Window or context creation failed
     cerr << "OpenGL context not available" << endl;
     glfwTerminate();
@@ -152,7 +153,7 @@ void init_glfw() {
   // Save window state
   window_state.monitorPtr = glfwGetPrimaryMonitor();
   // Context setting to happen before OpenGL's extension loader
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(common::window);
   glfwSwapInterval(1);
 }
 
@@ -197,7 +198,7 @@ void init_program() {
   // Initialize trackball camera
   int width;
   int height;
-  glfwGetWindowSize(window, &width, &height);
+  glfwGetWindowSize(common::window, &width, &height);
   ball.setWindowSize(width, height);
 }
 
@@ -320,7 +321,7 @@ void render() {
   //Projection
   int width;
   int height;
-  glfwGetWindowSize(window, &width, &height);
+  glfwGetWindowSize(common::window, &width, &height);
   GLfloat aspect = float(width) / float(height);
   GLfloat fovy = TAU / 8.0f + zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
@@ -363,11 +364,11 @@ void update() {
 }
 
 void register_glfw_callbacks() {
-  glfwSetWindowSizeCallback(window, resize_callback);
-  glfwSetKeyCallback(window, key_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
-  glfwSetCursorPosCallback(window, cursor_position_callback);
-  glfwSetScrollCallback(window, scroll_callback);
+  glfwSetWindowSizeCallback(common::window, resize_callback);
+  glfwSetKeyCallback(common::window, key_callback);
+  glfwSetMouseButtonCallback(common::window, mouse_button_callback);
+  glfwSetCursorPosCallback(common::window, cursor_position_callback);
+  glfwSetScrollCallback(common::window, scroll_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
@@ -436,17 +437,17 @@ void glfw_error_callback(int error, const char* description) {
 
 void change_window_mode() {
   //Windowed windows return null as their monitor
-  GLFWmonitor* monitor = glfwGetWindowMonitor(window);
+  GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
 
   if (monitor) { // Go to windowed mode
     window_state.monitorPtr = monitor;
-    glfwSetWindowMonitor(window, nullptr, window_state.x_pos, window_state.y_pos,
+    glfwSetWindowMonitor(common::window, nullptr, window_state.x_pos, window_state.y_pos,
         window_state.width, window_state.height, 0);
   } else { // go to full screen
-    glfwGetWindowPos(window, &window_state.x_pos, &window_state.y_pos);
-    glfwGetWindowSize(window, &window_state.width, &window_state.height);
+    glfwGetWindowPos(common::window, &window_state.x_pos, &window_state.y_pos);
+    glfwGetWindowSize(common::window, &window_state.width, &window_state.height);
     const GLFWvidmode* mode = glfwGetVideoMode(window_state.monitorPtr);
-    glfwSetWindowMonitor(window, window_state.monitorPtr, 0, 0, mode->width,
+    glfwSetWindowMonitor(common::window, window_state.monitorPtr, 0, 0, mode->width,
         mode->height, mode->refreshRate);
   }
 }
@@ -459,7 +460,7 @@ void free_resources() {
   /* Delete OpenGL program */
   delete ogl_program_ptr;
   //Window and context destruction
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(common::window);
 }
 
 

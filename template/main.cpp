@@ -144,11 +144,11 @@ void init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Library was initializated, now try window and context
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  //glfwWindowHint(GLFW_SAMPLES, 4);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!window) {
@@ -176,20 +176,6 @@ void load_OpenGL() {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
   context_info = enviroment_info();
-  /************************************************************************/
-  /*                    OpenGL Debug context                              */
-  /************************************************************************/
-  GLint flags;
-  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(opengl_error_callback, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    cout << "OpenGL's debug logger active" << endl;
-  } else {
-    cout << "OpenGL's debug disabled" << endl;
-  }
 }
 
 void init_program() {
@@ -544,60 +530,7 @@ void free_resources() {
   glfwDestroyWindow(window);
 }
 
-void APIENTRY opengl_error_callback(GLenum source,
-                                    GLenum type,
-                                    GLuint id,
-                                    GLenum severity,
-                                    GLsizei length,
-                                    const GLchar *message,
-                                    const void *userParam) {
-  using std::cout;
-  using std::endl;
-  using std::string;
-  using std::to_string;
-  // ignore non-significant error/warning codes
-  if(id == 131169 || id == 131185 || id == 131218 || id == 131204) {
-    return;
-  }
-  // Gather all the info in strings
-  string source_str;
-   switch (source) {
-     case GL_DEBUG_SOURCE_API:             source_str = "API"; break;
-     case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   source_str = "Window System"; break;
-     case GL_DEBUG_SOURCE_SHADER_COMPILER: source_str = "Shader Compiler"; break;
-     case GL_DEBUG_SOURCE_THIRD_PARTY:     source_str = "Third Party"; break;
-     case GL_DEBUG_SOURCE_APPLICATION:     source_str = "Application"; break;
-     case GL_DEBUG_SOURCE_OTHER:           source_str = "Other"; break;
-   }
 
-  string type_str;
-  switch (type) {
-    case GL_DEBUG_TYPE_ERROR:               type_str = "Error"; break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str = "Deprecated Behaviour"; break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  type_str = "Undefined Behaviour"; break;
-    case GL_DEBUG_TYPE_PORTABILITY:         type_str = "Portability"; break;
-    case GL_DEBUG_TYPE_PERFORMANCE:         type_str = "Performance"; break;
-    case GL_DEBUG_TYPE_MARKER:              type_str = "Marker"; break;
-    case GL_DEBUG_TYPE_PUSH_GROUP:          type_str = "Push Group"; break;
-    case GL_DEBUG_TYPE_POP_GROUP:           type_str = "Pop Group"; break;
-    case GL_DEBUG_TYPE_OTHER:               type_str = "Other"; break;
-  }
-
-  string severity_str;
-  switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:         severity_str = "high"; break;
-    case GL_DEBUG_SEVERITY_MEDIUM:       severity_str = "medium"; break;
-    case GL_DEBUG_SEVERITY_LOW:          severity_str = "low"; break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: severity_str = "notification"; break;
-  }
-  // format message
-  string msg = string("OpenGL error (") + to_string(id) + string("): ") + message + string("\n") +
-               string("Source: ") + source_str + string("\n") +
-               string("Type: ") + type_str + string("\n") +
-               string("Severity: ") + severity_str + string("\n");
-  // print error to console
-  cout << msg << endl;
-}
 
 void print_shader_log(GLint const shader) {
   using std::cerr;

@@ -13,7 +13,9 @@ void printShaderInfoLog(GLuint object);
 void printProgramInfoLog(GLuint object);
 bool getErrorLog();
 
-std::string getOpenGLInfo();
+// get info from the used libraries versions
+std::string enviroment_info();
+
 bool framebufferStatus();
 
 void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,

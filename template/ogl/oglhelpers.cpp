@@ -1,4 +1,7 @@
 #include <iostream>
+#include <sstream>
+
+#include "../imgui/imgui.h"
 
 #include "oglhelpers.h"
 
@@ -9,12 +12,11 @@ using namespace std;
 void printShaderInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-  char *infoLog;
 
   glGetShaderiv(object, GL_INFO_LOG_LENGTH, &infologLength);
 
   if (infologLength > 0) {
-    infoLog = new char[infologLength];
+    GLchar* infoLog = new char[infologLength];
     glGetShaderInfoLog(object, infologLength, &charsWritten, infoLog);
     cout << infoLog << endl;
     delete[] infoLog;
@@ -24,12 +26,11 @@ void printShaderInfoLog(GLuint object) {
 void printProgramInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-  char *infoLog;
 
   glGetProgramiv(object, GL_INFO_LOG_LENGTH, &infologLength);
 
   if (infologLength > 0) {
-    infoLog = new char[infologLength];
+    GLchar* infoLog = new char[infologLength];
     glGetProgramInfoLog(object, infologLength, &charsWritten, &infoLog[0]);
     cout << infoLog << endl;
     delete[] infoLog;
@@ -99,25 +100,32 @@ bool getErrorLog() {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(opengl_error_callback, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    cout << "OpenGL's debug logger active" << endl;
     return true;
   } else {
-    cout << "OpenGL's debug disabled" << endl;
     return false;
   }
 }
 
-string getOpenGLInfo() {
-  string log;
-  cout << "Hardware specification: " << endl;
-  cout << "Vendor: " << glGetString(GL_VENDOR) << endl;
-  cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
-  cout << "Software specification: " << endl;
-  cout << "Using GLEW " << glewGetString(GLEW_VERSION) << endl;
-  cout << "Using OpenGL " << glGetString(GL_VERSION) << endl;
-  cout << "Using GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+std::string enviroment_info() {
+  using std::endl;
+  std::stringstream info;
 
-  return log;
+  info << "Hardware: " << endl;
+  info << "\tVendor: " << glGetString(GL_VENDOR) << endl;
+  info << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
+  info << "Software: " << endl;
+  info << "\tDriver:" << endl;
+  info << "\t\tOpenGL version: " << glGetString(GL_VERSION) << endl;
+  info << "\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+  info << "\tLibraries:" << endl;
+  info << "\t\tGLEW version: " << glewGetString(GLEW_VERSION) << endl;
+  info << "\t\tGLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
+       << "." << GLFW_VERSION_REVISION << endl;
+  info << "\t\tGLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
+       << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
+  info << "\t\tDear Imgui version: " << ImGui::GetVersion();
+
+  return info.str();
 }
 
 bool framebufferStatus() {

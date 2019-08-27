@@ -4,48 +4,31 @@
 #include "oglprogram.h"
 #include "oglhelpers.h"
 
-
 namespace ogl {
 
 using namespace std;
 
 OGLProgram::OGLProgram(string vertex_shader_file_name, string fragment_shader_file_name) {
-  /* Cool preprocessing */
+
   m_program_ok = true;
-  ifstream input_vertex_shader_file(vertex_shader_file_name, ios::in | ios::binary);
-  if (input_vertex_shader_file) {
-    input_vertex_shader_file.seekg(0, ios::end);
-    m_vertex_shader_source.resize(static_cast<unsigned int>(input_vertex_shader_file.tellg()));
-    input_vertex_shader_file.seekg(0, ios::beg);
-    input_vertex_shader_file.read(&m_vertex_shader_source[0], m_vertex_shader_source.size());
-    input_vertex_shader_file.close();
-  }
-  else {
+  /* Read shader's source code from input files */
+  m_vertex_shader_source = read_shader_from_file(vertex_shader_file_name);
+  if (m_vertex_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open vertex shader file at: " << vertex_shader_file_name << endl;
-    m_program_ok = false;
   }
 
-  ifstream input_fragment_shader_file(fragment_shader_file_name, ios::in | ios::binary);
-  if (input_fragment_shader_file) {
-    input_fragment_shader_file.seekg(0, ios::end);
-    m_fragment_shader_source.resize(static_cast<unsigned int>(input_fragment_shader_file.tellg()));
-    input_fragment_shader_file.seekg(0, ios::beg);
-    input_fragment_shader_file.read(&m_fragment_shader_source[0], m_fragment_shader_source.size());
-    input_fragment_shader_file.close();
+  m_fragment_shader_source = read_shader_from_file(fragment_shader_file_name);
+  if (m_fragment_shader_source.empty() || !m_program_ok) {
+    cerr << "Could not open vertex shader file at: " << fragment_shader_file_name << endl;
   }
-  else {
-    cerr << "Could not open fragment shader file at: " << fragment_shader_file_name << endl;
-    m_program_ok = false;
-  }
-
-  /* or not */
+  /* try to compile them */
   m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &m_vertex_shader_source[0];
-  glShaderSource(m_vertex_shader, 1, &start, NULL);
+  glShaderSource(m_vertex_shader, 1, &start, nullptr);
 
   m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &m_fragment_shader_source[0];
-  glShaderSource(m_fragment_shader, 1, &start, NULL);
+  glShaderSource(m_fragment_shader, 1, &start, nullptr);
 
   try {
     int status;
@@ -62,12 +45,11 @@ OGLProgram::OGLProgram(string vertex_shader_file_name, string fragment_shader_fi
     if (status == GL_FALSE) {
       throw m_fragment_shader;
     }
-  }
-  catch (GLuint bad_shader) {
+  } catch (GLuint bad_shader) {
     printShaderInfoLog(bad_shader);
     m_program_ok = false;
   }
-
+  // Shaders compile individually. Now, try to link an OpenGL program
   m_program = glCreateProgram();
   try {
     int status;
@@ -81,8 +63,7 @@ OGLProgram::OGLProgram(string vertex_shader_file_name, string fragment_shader_fi
       throw m_program;
     }
 
-  }
-  catch (GLuint bad_program) {
+  } catch (GLuint bad_program) {
     printProgramInfoLog(bad_program);
     m_program_ok = false;
   }
@@ -90,56 +71,35 @@ OGLProgram::OGLProgram(string vertex_shader_file_name, string fragment_shader_fi
 
 OGLProgram::OGLProgram(std::string vertex_shader_file_name, std::string fragment_shader_file_name,
              std::string geometry_shader_file_name) {
-  /* Cool preprocessing */
+
   m_program_ok = true;
-  ifstream input_vertex_shader_file(vertex_shader_file_name, ios::in | ios::binary);
-  if (input_vertex_shader_file) {
-    input_vertex_shader_file.seekg(0, ios::end);
-    m_vertex_shader_source.resize(static_cast<unsigned int>(input_vertex_shader_file.tellg()));
-    input_vertex_shader_file.seekg(0, ios::beg);
-    input_vertex_shader_file.read(&m_vertex_shader_source[0], m_vertex_shader_source.size());
-    input_vertex_shader_file.close();
-  } else {
+  /* Read shader's source code from input files */
+  m_vertex_shader_source = read_shader_from_file(vertex_shader_file_name);
+  if (m_vertex_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open vertex shader file at: " << vertex_shader_file_name << endl;
-    m_program_ok = false;
   }
 
-  ifstream input_fragment_shader_file(fragment_shader_file_name, ios::in | ios::binary);
-  if (input_fragment_shader_file) {
-    input_fragment_shader_file.seekg(0, ios::end);
-    m_fragment_shader_source.resize(static_cast<unsigned int>(input_fragment_shader_file.tellg()));
-    input_fragment_shader_file.seekg(0, ios::beg);
-    input_fragment_shader_file.read(&m_fragment_shader_source[0], m_fragment_shader_source.size());
-    input_fragment_shader_file.close();
-  } else {
-    cerr << "Could not open fragment shader file at: " << fragment_shader_file_name << endl;
-    m_program_ok = false;
+  m_fragment_shader_source = read_shader_from_file(fragment_shader_file_name);
+  if (m_fragment_shader_source.empty() || !m_program_ok) {
+    cerr << "Could not open vertex shader file at: " << fragment_shader_file_name << endl;
   }
 
-  ifstream input_geometry_shader_file(geometry_shader_file_name, ios::in | ios::binary);
-  if (input_geometry_shader_file) {
-    input_geometry_shader_file.seekg(0, ios::end);
-    m_geometry_shader_source.resize(static_cast<unsigned int>(input_geometry_shader_file.tellg()));
-    input_geometry_shader_file.seekg(0, ios::beg);
-    input_geometry_shader_file.read(&m_geometry_shader_source[0], m_geometry_shader_source.size());
-    input_geometry_shader_file.close();
-  } else {
+  m_geometry_shader_source = read_shader_from_file(geometry_shader_file_name);
+  if (m_geometry_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open geometry shader file at: " << geometry_shader_file_name << endl;
-    m_program_ok = false;
   }
-
-  /* or not */
+  /* try to compile them */
   m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &m_vertex_shader_source[0];
-  glShaderSource(m_vertex_shader, 1, &start, NULL);
+  glShaderSource(m_vertex_shader, 1, &start, nullptr);
 
   m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &m_fragment_shader_source[0];
-  glShaderSource(m_fragment_shader, 1, &start, NULL);
+  glShaderSource(m_fragment_shader, 1, &start, nullptr);
 
   m_geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
   start = &m_geometry_shader_source[0];
-  glShaderSource(m_geometry_shader, 1, &start, NULL);
+  glShaderSource(m_geometry_shader, 1, &start, nullptr);
 
   try {
     int status;
@@ -170,7 +130,7 @@ OGLProgram::OGLProgram(std::string vertex_shader_file_name, std::string fragment
     printShaderInfoLog(bad_shader);
     m_program_ok = false;
   }
-
+  // Shaders compile individually. Now, try to link an OpenGL program
   m_program = glCreateProgram();
   try {
     int status;
@@ -240,6 +200,22 @@ bool OGLProgram::validate_shader_type(const GLenum& shadertype) {
     return true;
   }
   return false;
+}
+
+string OGLProgram::read_shader_from_file(const string& shader_file_name) {
+  ifstream input_shader_file(shader_file_name, ios::in | ios::binary);
+  string shader_source_code;
+  if (input_shader_file) {
+    input_shader_file.seekg(0, ios::end);
+    shader_source_code.resize(static_cast<unsigned int>(input_shader_file.tellg()));
+    input_shader_file.seekg(0, ios::beg);
+    input_shader_file.read(&shader_source_code[0], shader_source_code.size());
+    input_shader_file.close();
+  } else {
+    m_program_ok = false;
+  }
+
+  return shader_source_code;
 }
 
 OGLProgram::OGLProgram() {

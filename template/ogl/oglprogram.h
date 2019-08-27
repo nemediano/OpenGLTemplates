@@ -42,6 +42,7 @@ private:
   GLuint m_program;
 
   bool validate_shader_type(const GLenum& shadertype);
+  std::string read_shader_from_file(const std::string& source_file);
 };
 
 } //namespace ogl

@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 // Dear imgui related headers
 #include "imgui/imgui.h"
@@ -18,6 +17,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ui/trackball.h"
+#include "ogl/oglhelpers.h"
+#include "ogl/oglprogram.h"
 
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
@@ -29,9 +30,7 @@ GLint u_PVM_location = -1;
 GLint a_position_loc = -1;
 GLint a_color_loc = -1;
 // OpenGL program handlers
-GLuint vertex_shader = 0;
-GLuint fragment_shader = 0;
-GLuint program = 0;
+ogl::OGLProgram* ogl_program_ptr = nullptr;
 // Global variables for the program logic
 int nTriangles = 0;
 bool rotating = false;
@@ -72,13 +71,6 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
 void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods);
 void cursor_position_callback(GLFWwindow* windowPtr, double xpos, double ypos);
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
-// OpenGL's debug logger callback (needs context 4.3 or above)
-void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                            GLsizei length, const GLchar *message, const void *userParam);
-// Print shader compilation errors
-void print_shader_log(GLint const shader);
-// get info from the used libraries versions
-std::string enviroment_info();
 
 int main (int argc, char* argv[]) {
   init_glfw();
@@ -175,80 +167,24 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  context_info = enviroment_info();
+  context_info = ogl::enviroment_info();
+
+  if (ogl::getErrorLog()) {
+    cout << "OpenGL's debug logger active" << endl;
+  } else {
+    cout << "OpenGL's debug disabled" << endl;
+  }
 }
 
 void init_program() {
   /************************************************************************/
   /*                   OpenGL program (pipeline) creation                 */
   /************************************************************************/
-  using std::string;
-  using std::cerr;
-  using std::endl;
-  /* In a normal program the shader should be in separate text files
-  I put them here to avoid another layer of complexity */
-  const string vertex_shader_src = R"GLSL(
-    #version 130
-
-    in vec3 Position;
-    in vec3 Color;
-
-    uniform mat4 PVM;
-
-    out vec4 vColor;
-
-    void main(void) {
-      gl_Position = PVM * vec4(Position, 1.0f);
-      vColor = vec4(Color, 1.0);
-    }
-  )GLSL";
-
-  const string fragment_shader_src = R"GLSL(
-    #version 130
-
-    in vec4 vColor;
-
-    out vec4 fragcolor;
-
-    void main(void) {
-      fragcolor = vColor;
-    }
-  )GLSL";
-
-  vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  const char* start = &vertex_shader_src[0];
-  glShaderSource(vertex_shader, 1, &start, nullptr);
-
-  fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  start = &fragment_shader_src[0];
-  glShaderSource(fragment_shader, 1, &start, nullptr);
-
-  int status{0};
-  glCompileShader(vertex_shader);
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
-  if (status == GL_FALSE) {
-    cerr << "Vertex shader was not compiled!!" << endl;
-    print_shader_log(vertex_shader);
-  }
-  glCompileShader(fragment_shader);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &status);
-  if (status == GL_FALSE) {
-    cerr << "Fragment shader was not compiled!!" << endl;
-    print_shader_log(fragment_shader);
-  }
-  program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
-  //glBindFragDataLocation(program, 0, "fragcolor");
-  glLinkProgram(program);
-  glGetProgramiv(program, GL_LINK_STATUS, &status);
-  if (status == GL_FALSE) {
-    cerr << "OpenGL program was not linked!!" << endl;
-  }
+  ogl_program_ptr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
   /* Now, that we have the program, query location of shader variables */
-  u_PVM_location = glGetUniformLocation(program, "PVM");
-  a_position_loc = glGetAttribLocation(program, "Position");
-  a_color_loc = glGetAttribLocation(program, "Color");
+  u_PVM_location = ogl_program_ptr->uniformLoc("PVM");
+  a_position_loc = ogl_program_ptr->attribLoc("Position");
+  a_color_loc = ogl_program_ptr->attribLoc("Color");
 
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
@@ -361,7 +297,7 @@ void create_primitives_and_send_to_gpu() {
 void render() {
   ImGui::Render(); // Prepare to render our menu, before clearing buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(program);
+  ogl_program_ptr->use();
   /************************************************************************/
   /* Calculate  Model View Projection Matrices                            */
   /************************************************************************/
@@ -521,53 +457,9 @@ void free_resources() {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
   /* Delete OpenGL program */
-  glDetachShader(program, vertex_shader);
-  glDetachShader(program, fragment_shader);
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-  glDeleteProgram(program);
+  delete ogl_program_ptr;
   //Window and context destruction
   glfwDestroyWindow(window);
 }
 
 
-
-void print_shader_log(GLint const shader) {
-  using std::cerr;
-  using std::endl;
-
-  int log_length = 0;
-  int chars_written = 0;
-
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-
-  if (log_length > 0) {
-    GLchar *log = new GLchar[log_length];
-    glGetShaderInfoLog(shader, log_length, &chars_written, log);
-    cerr << "Shader Info Log:" << endl;
-    cerr << log << endl;
-    delete [] log;
-  }
-}
-
-std::string enviroment_info() {
-  using std::endl;
-  std::stringstream info;
-
-  info << "Hardware: " << endl;
-  info << "\tVendor: " << glGetString(GL_VENDOR) << endl;
-  info << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
-  info << "Software: " << endl;
-  info << "\tDriver:" << endl;
-  info << "\t\tOpenGL version: " << glGetString(GL_VERSION) << endl;
-  info << "\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
-  info << "\tLibraries:" << endl;
-  info << "\t\tGLEW version: " << glewGetString(GLEW_VERSION) << endl;
-  info << "\t\tGLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
-       << "." << GLFW_VERSION_REVISION << endl;
-  info << "\t\tGLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
-       << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
-  info << "\t\tDear Imgui version: " << ImGui::GetVersion();
-
-  return info.str();
-}

@@ -1,6 +1,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <string>
+
 #include <GLFW/glfw3.h>
 
 #include "ui/trackball.h"
@@ -31,6 +33,8 @@ extern int zoom_level;
 
 extern bool rotating;
 extern float current_angle;
+
+extern std::string context_info;
 
 } //namsepace common
 

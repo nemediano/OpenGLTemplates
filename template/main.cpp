@@ -20,7 +20,9 @@
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
 #include "common.h"
+#include "menu.h"
 #include "callbacks.h"
+
 // Location for shader variables
 GLint u_PVM_location = -1;
 GLint a_position_loc = -1;
@@ -31,32 +33,18 @@ ogl::OGLProgram* ogl_program_ptr = nullptr;
 int nTriangles = 0;
 double last_time = 0.0;
 
-std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
-// Keep track of the window state
-class WindowState {
-public:
-  GLFWmonitor* monitorPtr;
-  int x_pos;
-  int y_pos;
-  int width;
-  int height;
-};
-WindowState window_state;
 
 // Function declarations
 void init_glfw();
 void load_OpenGL();
 void init_program();
 void create_primitives_and_send_to_gpu();
-void setup_menu();
-void create_menu();
+
 void render();
 void update();
 void free_resources();
-
-
 
 int main (int argc, char* argv[]) {
   init_glfw();
@@ -77,38 +65,7 @@ int main (int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-void setup_menu() {
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-  ImGui::StyleColorsDark();
-  ImGui_ImplGlfw_InitForOpenGL(common::window, true);
-  const char* glsl_version{"#version 130"};
-  ImGui_ImplOpenGL3_Init(glsl_version);
-}
-
-void create_menu() {
-  // Start the Dear ImGui frame
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-  // Draw the menu
-  ImGui::Begin("Triangle's basic menu");
-    ImGui::Text("Options");
-    if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
-      common::current_angle = 0.0f;
-    }
-    if (ImGui::CollapsingHeader("Enviroment info:")) {
-      ImGui::Text("%s", context_info.c_str());
-    }
-    if (ImGui::CollapsingHeader("Application stats")) {
-      ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
-      ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    }
-  ImGui::End();
-}
 
 void init_glfw() {
   using std::cerr;
@@ -136,7 +93,7 @@ void init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Save window state
-  window_state.monitorPtr = glfwGetPrimaryMonitor();
+  common::window_state.monitorPtr = glfwGetPrimaryMonitor();
   // Context setting to happen before OpenGL's extension loader
   glfwMakeContextCurrent(common::window);
   glfwSwapInterval(1);
@@ -153,7 +110,7 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  context_info = ogl::enviroment_info();
+  common::context_info = ogl::enviroment_info();
 
   if (ogl::getErrorLog()) {
     cout << "OpenGL's debug logger active" << endl;

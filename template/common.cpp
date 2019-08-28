@@ -14,4 +14,6 @@ int zoom_level = 0;
 bool rotating = false;
 float current_angle = 0.0f;
 
+std::string context_info;
+
 } //namespace common

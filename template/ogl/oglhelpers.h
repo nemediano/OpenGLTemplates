@@ -29,4 +29,8 @@ void printVector(glm::vec3 u);
 
 } // namespace ogl
 
+// Define helpful macros for handling offsets into buffer objects
+#define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
+#define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
+
 #endif

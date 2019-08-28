@@ -16,16 +16,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "common.h"
 
-#include "ui/trackball.h"
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
-
-// Define helpful macros for handling offsets into buffer objects
-#define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
-#define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
-
+#include "common.h"
+#include "callbacks.h"
 // Location for shader variables
 GLint u_PVM_location = -1;
 GLint a_position_loc = -1;
@@ -34,11 +29,8 @@ GLint a_color_loc = -1;
 ogl::OGLProgram* ogl_program_ptr = nullptr;
 // Global variables for the program logic
 int nTriangles = 0;
-bool rotating = false;
-float current_angle = 0.0f;
 double last_time = 0.0;
-bool mouse_drag = false;
-int zoom_level = 0;
+
 std::string context_info;
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -52,7 +44,7 @@ public:
   int height;
 };
 WindowState window_state;
-ui::Trackball ball;
+
 // Function declarations
 void init_glfw();
 void load_OpenGL();
@@ -63,15 +55,8 @@ void create_menu();
 void render();
 void update();
 void free_resources();
-void change_window_mode();
-// GLFW related callbacks
-void register_glfw_callbacks();
-void glfw_error_callback(int error, const char* description);
-void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods);
-void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height);
-void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods);
-void cursor_position_callback(GLFWwindow* windowPtr, double xpos, double ypos);
-void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
+
+
 
 int main (int argc, char* argv[]) {
   init_glfw();
@@ -112,8 +97,8 @@ void create_menu() {
   // Draw the menu
   ImGui::Begin("Triangle's basic menu");
     ImGui::Text("Options");
-    if (ImGui::Checkbox("Rotate", &rotating)) { //Imgui's controls return true on interaction
-      current_angle = 0.0f;
+    if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
+      common::current_angle = 0.0f;
     }
     if (ImGui::CollapsingHeader("Enviroment info:")) {
       ImGui::Text("%s", context_info.c_str());
@@ -199,7 +184,7 @@ void init_program() {
   int width;
   int height;
   glfwGetWindowSize(common::window, &width, &height);
-  ball.setWindowSize(width, height);
+  common::ball.setWindowSize(width, height);
 }
 
 void create_primitives_and_send_to_gpu() {
@@ -308,8 +293,8 @@ void render() {
   glm::mat4 I(1.0f);
   //Model
   glm::mat4 M = I;
-  if (rotating) {
-    M = glm::rotate(M, glm::radians(current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+  if (common::rotating) {
+    M = glm::rotate(M, glm::radians(common::current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
   }
   //View
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -317,13 +302,13 @@ void render() {
   glm::vec3 camera_eye = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
   // Use trackball to get a rotation applied to the camera's initial pose
-  glm::mat4 V = Cam_Init_Pos * ball.getRotation();
+  glm::mat4 V = Cam_Init_Pos * common::ball.getRotation();
   //Projection
   int width;
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   GLfloat aspect = float(width) / float(height);
-  GLfloat fovy = TAU / 8.0f + zoom_level * (TAU / 50.0f);
+  GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
   glm::mat4 P = glm::perspective(fovy, aspect, zNear, zFar);
@@ -353,102 +338,13 @@ void update() {
   double elapsed = time - last_time;
   last_time = time;
   /*If rotating update angle*/
-  if (rotating) {
+  if (common::rotating) {
     const float speed = 180.0f; //In degrees per second
-    current_angle += float(elapsed) * speed;
-    if (current_angle > 360.0f) {
-      int quotient = int(current_angle / 360.0f);
-      current_angle -= quotient * 360.0f;
+    common::current_angle += float(elapsed) * speed;
+    if (common::current_angle > 360.0f) {
+      int quotient = int(common::current_angle / 360.0f);
+      common::current_angle -= quotient * 360.0f;
     }
-  }
-}
-
-void register_glfw_callbacks() {
-  glfwSetWindowSizeCallback(common::window, resize_callback);
-  glfwSetKeyCallback(common::window, key_callback);
-  glfwSetMouseButtonCallback(common::window, mouse_button_callback);
-  glfwSetCursorPosCallback(common::window, cursor_position_callback);
-  glfwSetScrollCallback(common::window, scroll_callback);
-}
-
-void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
-  ImGuiIO& io = ImGui::GetIO();
-  //Imgui wants this event, since it happen inside the GUI
-  if (io.WantCaptureKeyboard) {
-    return;
-  }
-  //The event happen outside the GUI, your application should try to handle it
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(windowPtr, 1);
-  } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-    rotating = !rotating;
-    current_angle = 0.0f;
-  } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
-    change_window_mode();
-  }
-}
-
-void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
-  ImGuiIO& io = ImGui::GetIO();
-  //Imgui wants this event, since it happen inside the GUI
-  if (io.WantCaptureMouse) {
-    return;
-  }
-  //The event happen outside the GUI, your application should try to handle it
-  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-    mouse_drag = true;
-    double mouse_x;
-    double mouse_y;
-    glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
-    ball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
-  } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-    ball.endDrag();
-    mouse_drag = false;
-  }
-}
-
-void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mouse_y) {
-  ImGuiIO& io = ImGui::GetIO();
-  //Imgui wants this event, since it happen inside the GUI
-  if (io.WantCaptureMouse) {
-    return;
-  }
-
-  if (mouse_drag) {
-    ball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
-  }
-}
-
-void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
-  zoom_level += int(y_offset);
-  zoom_level = glm::clamp(zoom_level, -5, 5);
-}
-
-void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
-  glViewport(0, 0, new_window_width, new_window_height);
-  ball.setWindowSize(new_window_width, new_window_height);
-}
-
-void glfw_error_callback(int error, const char* description) {
-  using std::cerr;
-  using std::endl;
-  cerr << "GLFW Error: " << description << endl;
-}
-
-void change_window_mode() {
-  //Windowed windows return null as their monitor
-  GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
-
-  if (monitor) { // Go to windowed mode
-    window_state.monitorPtr = monitor;
-    glfwSetWindowMonitor(common::window, nullptr, window_state.x_pos, window_state.y_pos,
-        window_state.width, window_state.height, 0);
-  } else { // go to full screen
-    glfwGetWindowPos(common::window, &window_state.x_pos, &window_state.y_pos);
-    glfwGetWindowSize(common::window, &window_state.width, &window_state.height);
-    const GLFWvidmode* mode = glfwGetVideoMode(window_state.monitorPtr);
-    glfwSetWindowMonitor(common::window, window_state.monitorPtr, 0, 0, mode->width,
-        mode->height, mode->refreshRate);
   }
 }
 

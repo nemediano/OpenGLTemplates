@@ -16,7 +16,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
+#include "image/texture.h"
+#include "image/proceduraltextures.h"
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
 #include "common.h"
@@ -25,10 +26,12 @@
 
 // Location for shader variables
 GLint u_PVM_location = -1;
+GLint u_TextureMap_location = -1;
 GLint a_position_loc = -1;
 GLint a_color_loc = -1;
 // OpenGL program handlers
 ogl::OGLProgram* ogl_program_ptr = nullptr;
+image::Texture texture;
 // Global variables for the program logic
 int nTriangles = 0;
 double last_time = 0.0;
@@ -126,9 +129,12 @@ void init_program() {
   ogl_program_ptr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
   /* Now, that we have the program, query location of shader variables */
   u_PVM_location = ogl_program_ptr->uniformLoc("PVM");
+  u_TextureMap_location = ogl_program_ptr->uniformLoc("textureMap");
   a_position_loc = ogl_program_ptr->attribLoc("Position");
   a_color_loc = ogl_program_ptr->attribLoc("Color");
-
+  /* Load Texture */
+  texture = image::chessBoard();
+  texture.send_to_gpu();
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
   //Initialize some basic rendering state
@@ -244,8 +250,6 @@ void render() {
   /************************************************************************/
   /* Calculate  Model View Projection Matrices                            */
   /************************************************************************/
-  //Math constant equal two PI (Remember, we are in radians)
-  const float TAU = 6.28318f;
   //Identity matrix
   glm::mat4 I(1.0f);
   //Model
@@ -265,6 +269,8 @@ void render() {
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   GLfloat aspect = float(width) / float(height);
+  //Math constant equal two PI (Remember, we are in radians)
+  const float TAU = 6.28318f;
   GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
@@ -275,6 +281,8 @@ void render() {
   if (u_PVM_location != -1) {
     glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
+  glActiveTexture(GL_TEXTURE0);
+  texture.bind();
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
@@ -284,6 +292,7 @@ void render() {
   glDrawElements(GL_TRIANGLES, 3 * nTriangles, GL_UNSIGNED_SHORT,
                  BUFFER_OFFSET(start_index * sizeof(unsigned short)));
   //Unbind and clean
+  glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
   /* Render menu after the geometry of our actual app*/

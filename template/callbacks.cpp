@@ -27,6 +27,9 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     common::current_angle = 0.0f;
   } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
     change_window_mode();
+  } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+    common::sg.grab();
+    common::sg.next();
   }
 }
 
@@ -69,6 +72,7 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   glViewport(0, 0, new_window_width, new_window_height);
   common::ball.setWindowSize(new_window_width, new_window_height);
+  common::sg.resize(new_window_width, new_window_height);
 }
 
 void glfw_error_callback(int error, const char* description) {
@@ -83,13 +87,13 @@ void change_window_mode() {
 
   if (monitor) { // Go to windowed mode
     common::window_state.monitorPtr = monitor;
-    glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
-        common::window_state.width, common::window_state.height, 0);
+    //glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
+    //    common::window_state.width, common::window_state.height, 0);
   } else { // go to full screen
     glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
     glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
     const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
-    glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
-        mode->height, mode->refreshRate);
+    //glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
+    //    mode->height, mode->refreshRate);
   }
 }

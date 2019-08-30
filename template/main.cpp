@@ -82,11 +82,11 @@ void init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Library was initializated, now try window and context
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  //glfwWindowHint(GLFW_SAMPLES, 4);
+  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   common::window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!common::window) {
@@ -148,6 +148,7 @@ void init_program() {
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
+  common::sg.resize(width, height);
 }
 
 void create_primitives_and_send_to_gpu() {

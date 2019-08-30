@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include "ui/trackball.h"
+#include "image/screengrabber.h"
 
 namespace common {
 
@@ -18,6 +19,8 @@ public:
   int width;
   int height;
 };
+
+extern image::ScreenGrabber sg;
 
 extern WindowState window_state;
 

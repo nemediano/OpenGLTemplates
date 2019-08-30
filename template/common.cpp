@@ -16,4 +16,6 @@ float current_angle = 0.0f;
 
 std::string context_info;
 
+image::ScreenGrabber sg;
+
 } //namespace common

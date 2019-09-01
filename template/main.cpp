@@ -68,8 +68,6 @@ int main (int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-
-
 void init_glfw() {
   using std::cerr;
   using std::endl;

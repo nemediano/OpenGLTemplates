@@ -28,6 +28,7 @@ void create_menu() {
     if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
       common::current_angle = 0.0f;
     }
+    ImGui::InputFloat("Alpha", &common::alpha, 0.01f, 2.0f, "%.3f");
     if (ImGui::CollapsingHeader("Enviroment info:")) {
       ImGui::Text("%s", common::context_info.c_str());
     }

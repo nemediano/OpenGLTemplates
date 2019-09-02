@@ -38,9 +38,7 @@ ogl::OGLProgram* ogl_program_ptr = nullptr;
 std::vector<image::Texture*> textures;
 std::vector<mesh::MeshData> separators;
 // Global variables for the program logic
-int nTriangles = 0;
 double last_time = 0.0;
-float alpha = 0.0f;
 
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -153,7 +151,7 @@ void init_program() {
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
   common::sg.resize(width, height);
-  alpha = 8.0f;
+  common::alpha = 8.0f;
 }
 
 void create_primitives_and_send_to_gpu() {
@@ -250,23 +248,23 @@ void render() {
         glm::value_ptr(glm::inverse(glm::transpose(V * M))));
   }
   if (u_Alpha_location != -1) {
-    glUniform1f(u_Alpha_location, alpha);
+    glUniform1f(u_Alpha_location, common::alpha);
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
   glBindVertexArray(vao);
   /* Draw */
-  for (int i = 0; i < separators.size(); ++i) {
+  for (size_t i = 0; i < separators.size(); ++i) {
     mesh::MeshData sep = separators[i];
-    if (sep.specIndex == -1) {
+    if (sep.diffuseIndex == -1) {
         //This mesh does not have specular texture
         //Do not render (Not with this shader at least)
         continue;
     }
     //Bind the texture pointer as texture unit 0
     glActiveTexture(GL_TEXTURE0);
-    textures[sep.specIndex]->bind();
+    textures[sep.diffuseIndex]->bind();
     glUniform1f(u_ColorMap_location, 0);
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),

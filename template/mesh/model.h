@@ -33,11 +33,11 @@ typedef struct MeshData {
       divided by three.
   */
   GLsizei howMany;
-  //! Index of the specular texture
+  //! Index of the diffuse texture
   /*! The index of this mesh specular texture in the specular textures vector
    * or -1 if this mesh does not have a Diffuse texture
   */
-  int specIndex;
+  int diffuseIndex;
 } MeshData;
 
 enum TextType {DIFFUSE, SPECULAR, NORMALS, OTHER};

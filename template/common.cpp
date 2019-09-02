@@ -18,4 +18,6 @@ std::string context_info;
 
 image::ScreenGrabber sg;
 
+float alpha = 0.0f;
+
 } //namespace common

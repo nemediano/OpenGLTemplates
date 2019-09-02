@@ -104,15 +104,17 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
     mVertices.push_back(v);
   }
 
-  int specularTexture = -1;
+  int diffuseTexture = -1;
   if (mesh->mMaterialIndex > 0) {
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    specularTexture = addTexture(material);
+    diffuseTexture = addTexture(material);
   }
 
-  bookMark.specIndex = specularTexture;
+  bookMark.diffuseIndex = diffuseTexture;
   mSeparators.push_back(bookMark);
 }
+
+
 int Model::addTexture(const aiMaterial* mat) {
     if (!mat) {
         return -1;
@@ -120,24 +122,24 @@ int Model::addTexture(const aiMaterial* mat) {
 
     std::string textPath = "";
     if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-        aiString fileName;
-        mat->GetTexture(aiTextureType_DIFFUSE, 0, &fileName);
-        textPath = std::string(fileName.C_Str());
+      aiString fileName;
+      mat->GetTexture(aiTextureType_DIFFUSE, 0, &fileName);
+      textPath = std::string(fileName.C_Str());
     } else {
-        //NO specular texture for this Mesh
-        return -1;
+      //NO diffuse texture for this Mesh
+      return -1;
     }
 
     //Check if this texture is already in the vector
     for (size_t i = 0; i < mTexturesData.size(); ++i) {
-        if (mTexturesData[i].filePath == textPath) {
-            return int(i);
-        }
+      if (mTexturesData[i].filePath == textPath) {
+        return int(i);
+      }
     }
 
     //It's is not then create it an push it into the vector
     TextureImage text;
-    text.type = SPECULAR;
+    text.type = DIFFUSE;
     text.filePath = textPath;
     mTexturesData.push_back(text);
     return static_cast<int>(mTexturesData.size() - 1);

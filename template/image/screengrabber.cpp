@@ -26,7 +26,7 @@ void ScreenGrabber::grab(bool useFrontBuffer, const char* fileName) {
   GLubyte* screenBuffer = new GLubyte[(m_width * m_height * m_bytesPerPixel)];
   
   (useFrontBuffer) ? glReadBuffer(GL_FRONT) : glReadBuffer(GL_BACK);
-  //glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glReadPixels(0, 0, m_width, m_height, GL_BGR, GL_UNSIGNED_BYTE, screenBuffer);
 
   FIBITMAP* image = FreeImage_ConvertFromRawBits(screenBuffer, m_width, m_height, (3 * m_width), 

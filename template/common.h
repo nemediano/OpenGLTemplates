@@ -39,6 +39,8 @@ extern float current_angle;
 
 extern std::string context_info;
 
+extern float alpha;
+
 } //namsepace common
 
 #endif

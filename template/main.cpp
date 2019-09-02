@@ -28,7 +28,8 @@
 // Location for shader variables
 GLint u_PVM_location = -1;
 GLint u_NormalMat_location = -1;
-GLint u_ColorMap_location = -1;
+GLint u_DiffuseMap_location = -1;
+GLint u_SpecularMap_location = -1;
 GLint u_Alpha_location = -1;
 GLint a_position_loc = -1;
 GLint a_normal_loc = -1;
@@ -133,7 +134,8 @@ void init_program() {
   u_PVM_location = ogl_program_ptr->uniformLoc("PVM");
   u_NormalMat_location = ogl_program_ptr->uniformLoc("NormalMat");
   u_Alpha_location = ogl_program_ptr->uniformLoc("uAlpha");
-  u_ColorMap_location = ogl_program_ptr->uniformLoc("uColorMap");
+  u_DiffuseMap_location = ogl_program_ptr->uniformLoc("uDiffuseMap");
+  u_SpecularMap_location = ogl_program_ptr->uniformLoc("uSpecularMap");
   a_position_loc = ogl_program_ptr->attribLoc("posAttr");
   a_normal_loc = ogl_program_ptr->attribLoc("normalAttr");
   a_textureCoord_loc = ogl_program_ptr->attribLoc("textCoordAttr");
@@ -167,7 +169,7 @@ void create_primitives_and_send_to_gpu() {
   //Since we use the model to get the paths for the textures, I need to do this here
   for (auto t : model.getDiffuseTextures()) {
     std::string texture_file = model_folder + t.filePath;
-    std::cout << "Textfile: " << texture_file << std::endl;
+    //std::cout << "Textfile: " << texture_file << std::endl;
     image::Texture* texture = new image::Texture(texture_file);
     texture->send_to_gpu();
     textures.push_back(texture);
@@ -258,20 +260,26 @@ void render() {
   /* Draw */
   for (size_t i = 0; i < separators.size(); ++i) {
     mesh::MeshData sep = separators[i];
-    if (sep.diffuseIndex == -1) {
-        //This mesh does not have specular texture
+    if (sep.diffuseIndex == -1 || sep.specIndex == -1) {
+        //This mesh does is missing some texture
         //Do not render (Not with this shader at least)
         continue;
     }
-    //Bind the texture pointer as texture unit 0
+    //Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
     textures[sep.diffuseIndex]->bind();
-    glUniform1f(u_ColorMap_location, 0);
+    glUniform1f(u_DiffuseMap_location, 0);
+    //Send specular texture in unit 1
+    glActiveTexture(GL_TEXTURE1);
+    textures[sep.specIndex]->bind();
+    glUniform1f(u_SpecularMap_location, 1);
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),
                              sep.startVertex);
-    glBindTexture(GL_TEXTURE_2D, 0);
   }
+  // Clean state
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
   /* Render menu after the geometry of our actual app*/

@@ -23,18 +23,24 @@
 #include "common.h"
 #include "menu.h"
 #include "callbacks.h"
+#include "mesh/model.h"
 
 // Location for shader variables
 GLint u_PVM_location = -1;
-GLint u_TextureMap_location = -1;
+GLint u_NormalMat_location = -1;
+GLint u_ColorMap_location = -1;
+GLint u_Alpha_location = -1;
 GLint a_position_loc = -1;
-GLint a_color_loc = -1;
+GLint a_normal_loc = -1;
+GLint a_textureCoord_loc = -1;
 // OpenGL program handlers
 ogl::OGLProgram* ogl_program_ptr = nullptr;
-image::Texture texture;
+std::vector<image::Texture*> textures;
+std::vector<mesh::MeshData> separators;
 // Global variables for the program logic
 int nTriangles = 0;
 double last_time = 0.0;
+float alpha = 0.0f;
 
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;
@@ -127,12 +133,12 @@ void init_program() {
   ogl_program_ptr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
   /* Now, that we have the program, query location of shader variables */
   u_PVM_location = ogl_program_ptr->uniformLoc("PVM");
-  u_TextureMap_location = ogl_program_ptr->uniformLoc("textureMap");
-  a_position_loc = ogl_program_ptr->attribLoc("Position");
-  a_color_loc = ogl_program_ptr->attribLoc("Color");
-  /* Load Texture */
-  texture = image::chessBoard();
-  texture.send_to_gpu();
+  u_NormalMat_location = ogl_program_ptr->uniformLoc("NormalMat");
+  u_Alpha_location = ogl_program_ptr->uniformLoc("uAlpha");
+  u_ColorMap_location = ogl_program_ptr->uniformLoc("uColorMap");
+  a_position_loc = ogl_program_ptr->attribLoc("posAttr");
+  a_normal_loc = ogl_program_ptr->attribLoc("normalAttr");
+  a_textureCoord_loc = ogl_program_ptr->attribLoc("textCoordAttr");
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
   //Initialize some basic rendering state
@@ -147,70 +153,26 @@ void init_program() {
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
   common::sg.resize(width, height);
+  alpha = 8.0f;
 }
 
 void create_primitives_and_send_to_gpu() {
-  //Create primitives
-  struct Vertex {
-    glm::vec3 position;
-    glm::vec3 color;
-  };
+  using namespace mesh;
+  const std::string model_folder = "models/Nyra/";
+  const std::string model_path = model_folder + "Nyra_pose.obj";
 
-  std::vector<Vertex> vertices;
-  vertices.push_back({ { -1.0f, -1.0f, -1.0f }, { 0.15f, 0.15f, 0.15f } }); //0
-  vertices.push_back({ { -1.0f, -1.0f,  1.0f }, { 0.15f, 0.15f, 0.85f } }); //1
-  vertices.push_back({ { -1.0f,  1.0f, -1.0f }, { 0.15f, 0.85f, 0.15f } }); //2
-  vertices.push_back({ { -1.0f,  1.0f,  1.0f }, { 0.15f, 0.85f, 0.85f } }); //3
-  vertices.push_back({ {  1.0f, -1.0f, -1.0f }, { 0.85f, 0.15f, 0.15f } }); //4
-  vertices.push_back({ {  1.0f, -1.0f,  1.0f }, { 0.85f, 0.15f, 0.85f } }); //5
-  vertices.push_back({ {  1.0f,  1.0f, -1.0f }, { 0.85f, 0.85f, 0.15f } }); //7
-  vertices.push_back({ {  1.0f,  1.0f,  1.0f }, { 0.85f, 0.85f, 0.85f } }); //8
-
-  std::vector<unsigned short> indices;
-  // Top
-  indices.push_back(2);
-  indices.push_back(7);
-  indices.push_back(6);
-  indices.push_back(2);
-  indices.push_back(3);
-  indices.push_back(7);
-  // Buttom
-  indices.push_back(0);
-  indices.push_back(4);
-  indices.push_back(5);
-  indices.push_back(0);
-  indices.push_back(5);
-  indices.push_back(1);
-  // Left
-  indices.push_back(0);
-  indices.push_back(3);
-  indices.push_back(2);
-  indices.push_back(0);
-  indices.push_back(1);
-  indices.push_back(3);
-  // Right
-  indices.push_back(7);
-  indices.push_back(4);
-  indices.push_back(6);
-  indices.push_back(7);
-  indices.push_back(5);
-  indices.push_back(4);
-  // Front
-  indices.push_back(3);
-  indices.push_back(5);
-  indices.push_back(7);
-  indices.push_back(3);
-  indices.push_back(1);
-  indices.push_back(5);
-  // Back
-  indices.push_back(2);
-  indices.push_back(6);
-  indices.push_back(4);
-  indices.push_back(2);
-  indices.push_back(4);
-  indices.push_back(0);
-
-  nTriangles = indices.size() / 3;
+  Model model{model_path};
+  model.toUnitCube();
+  std::vector<unsigned int> indices = model.getIndices();
+  std::vector<Vertex> vertices = model.getVertices();
+  separators = model.getSeparators();
+  //Since we use the model to get the paths for the textures, I need to do this here
+  for (auto t : model.getDiffuseTextures()) {
+    std::string texture_file = model_folder + t.filePath;
+    image::Texture* texture = new image::Texture(texture_file);
+    texture->send_to_gpu();
+    textures.push_back(texture);
+  }
 
   //Create the vertex buffer objects and VAO
   GLuint vbo;
@@ -226,12 +188,15 @@ void create_primitives_and_send_to_gpu() {
   glEnableVertexAttribArray(a_position_loc);
   glVertexAttribPointer(a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         OFFSET_OF(Vertex, position));
-  glEnableVertexAttribArray(a_color_loc);
-  glVertexAttribPointer(a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          OFFSET_OF(Vertex, color));
+  glEnableVertexAttribArray(a_normal_loc);
+  glVertexAttribPointer(a_normal_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          OFFSET_OF(Vertex, normal));
+  glEnableVertexAttribArray(a_textureCoord_loc);
+  glVertexAttribPointer(a_textureCoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          OFFSET_OF(Vertex, textCoords));
   //Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short),
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
                indices.data(), GL_STATIC_DRAW);
   // Unbind the vao we will use it for render
   glBindVertexArray(0);
@@ -280,18 +245,34 @@ void render() {
   if (u_PVM_location != -1) {
     glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
-  glActiveTexture(GL_TEXTURE0);
-  texture.bind();
+  if (u_NormalMat_location != -1) {
+    glUniformMatrix4fv(u_NormalMat_location, 1, GL_FALSE, 
+        glm::value_ptr(glm::inverse(glm::transpose(V * M))));
+  }
+  if (u_Alpha_location != -1) {
+    glUniform1f(u_Alpha_location, alpha);
+  }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
   glBindVertexArray(vao);
   /* Draw */
-  const int start_index = 0; //In location corresponding the index array
-  glDrawElements(GL_TRIANGLES, 3 * nTriangles, GL_UNSIGNED_SHORT,
-                 BUFFER_OFFSET(start_index * sizeof(unsigned short)));
-  //Unbind and clean
-  glBindTexture(GL_TEXTURE_2D, 0);
+  for (int i = 0; i < separators.size(); ++i) {
+    mesh::MeshData sep = separators[i];
+    if (sep.specIndex == -1) {
+        //This mesh does not have specular texture
+        //Do not render (Not with this shader at least)
+        continue;
+    }
+    //Bind the texture pointer as texture unit 0
+    glActiveTexture(GL_TEXTURE0);
+    textures[sep.specIndex]->bind();
+    glUniform1f(u_ColorMap_location, 0);
+    glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
+                             reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),
+                             sep.startVertex);
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
   glBindVertexArray(0);
   glUseProgram(0);
   /* Render menu after the geometry of our actual app*/
@@ -318,6 +299,9 @@ void free_resources() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+  for (size_t i = 0; i < textures.size(); ++i) {
+    delete textures[i];
+  }
   /* Delete OpenGL program */
   delete ogl_program_ptr;
   //Window and context destruction

@@ -7,6 +7,7 @@
 
 void register_glfw_callbacks() {
   glfwSetWindowSizeCallback(common::window, resize_callback);
+  glfwSetFramebufferSizeCallback(common::window, framebuffer_size_callback);
   glfwSetKeyCallback(common::window, key_callback);
   glfwSetMouseButtonCallback(common::window, mouse_button_callback);
   glfwSetCursorPosCallback(common::window, cursor_position_callback);
@@ -29,7 +30,6 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
     common::sg.grab();
-    common::sg.next();
   }
 }
 
@@ -72,7 +72,10 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   glViewport(0, 0, new_window_width, new_window_height);
   common::ball.setWindowSize(new_window_width, new_window_height);
-  common::sg.resize(new_window_width, new_window_height);
+}
+
+void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
+  common::sg.resize(width, height);
 }
 
 void glfw_error_callback(int error, const char* description) {

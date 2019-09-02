@@ -1,13 +1,37 @@
-# Dear Imgui example using glfw
+# OpenGL template
 
-A minimal working example of an OpenGL program that uses [Dear imgui](http://github.com/ocornut/imgui) to implement a user menu. The sample uses [GLEW](http://glew.sourceforge.net/) as an extension loader, [GLM](http://glm.g-truc.net/) for the mathematics and [glfw](http://www.glfw.org/) as window manager.
+A template for the intermediate OpenGL programmer-user
 
-![Glfw Menu](../img/menuGlfw.png)
+The template requires an intermediate level [OpenGL](http://www.opengl.org/) user. You can use it as base for a homework or final project in an OpenGL course.
 
-Note that the code is written in a way to prefer clarity in presentation over performance in the execution or good codding patterns.
+![template](../img/template.png)
 
-All the *sample* code is in a single [source file](glfwImgui.cpp). However, the Dear imgui requires several additional files, those are contained in the `imgui` folder. Imgui files were taken from the library [website](http://github.com/ocornut/imgui) and are not modified. Therefore you can always replace them with newer versions of the same files.
+The template is composed of several files, in their corresponding folders. Ideally, you will only need to change/adapt the files in the base directory: main.cpp, commons.{h,cpp}, callbacks.{h,cpp}
 
-I tested the sample in an Ubuntu 18.04 standard installation. It also requires your graphics drivers already installed. And then, I installed all the libraries from the official repositories.
+## Features
 
-I provide a sample [makefile](Makefile) that works on the environment described above. For other platforms or IDEs you can deduct what you need to do by reading it.
+* Several helper classes to handle common OpenGL related tasks.
+* A trackball camera class.
+* Go into full-screen mode.
+* Take/save screen-shoots.
+* An user menu
+* Query for the version of the libraries and the OpenGL context.
+* An already made connection to the OpenGL debug logger extension.
+
+![template](../img/menuTemplate.png)
+
+## Usage
+
+The template requires working installation of the following libraries
+
+* [GLEW](http://glew.sourceforge.net/) as extension loader.
+* [GLFW](http://www.glfw.org/) as window manager.
+* [GLM](https://glm.g-truc.net) as a math library.
+* [FreeImage](http://freeimage.sourceforge.net/) as image read/write library.
+* [Assimp](http://www.assimp.org/) as 3D model read/write library.
+* [Dear Imgui](https://github.com/ocornut/imgui) for creating the UI menus. (Does not require install, all files are provided).
+
+I tested in Ubuntu 14.04 and 18.04 by installing the libraries from the corresponding official repositories. In such scenarios the [Makefile](Makefile) works as it is. If you are in a different platform and/or environment, you should be able to deduct what you need to do just by seeing the makefile.
+
+I also tested with success in both: a very old machine with Mesa Drivers only capable of OpenGL 3.0,
+and in a very recent machine with latest Nvidia drivers (OpenGL 4.6).

@@ -14,7 +14,8 @@ And for an intermadiate level progammer also requires:
 A novice graphic programmer, may struggle in the use of the libraries instead of focusing in the  actual OpenGL. I created several templates to help such users to have a minimal working OpenGL example. Moreover, in contrast to most of the examples in the internet and the books, I use C++ instead of C.
 
 The current templates are:
-* A minimal OpenGL [template](glutTriangle/README.md) using: C++, GLEW, GLM and freeglut.
-* A minimal OpenGL [template](glfwTriangle/README.md) using: C++, GLEW, GLM and glfw.
-* An OpenGL [template](imguiGlfw/README.md) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and glfw.
-* An OpenGL [template](imguiGlut/README.md) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and freeglut.
+* A minimal OpenGL [template](glutTriangle/) using: C++, GLEW, GLM and freeglut.
+* A minimal OpenGL [template](glfwTriangle/) using: C++, GLEW, GLM and glfw.
+* An OpenGL [template](imguiGlfw/) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and glfw.
+* An OpenGL [template](imguiGlut/) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and freeglut.
+* An intermediate OpenGL [template](template/) with all the previous features, plus a lot of extra helper clases for OpenGL.

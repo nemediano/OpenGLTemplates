@@ -23,12 +23,12 @@ void create_menu() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
   // Draw the menu
-  ImGui::Begin("Triangle's basic menu");
+  ImGui::Begin("Basic template menu");
     ImGui::Text("Options");
     if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
       common::current_angle = 0.0f;
     }
-    ImGui::InputFloat("Alpha", &common::alpha, 0.01f, 2.0f, "%.3f");
+    ImGui::SliderFloat("Alpha", &common::alpha, 0.0f, 128.0f, "%.1f", 2.0f);
     if (ImGui::CollapsingHeader("Enviroment info:")) {
       ImGui::Text("%s", common::context_info.c_str());
     }

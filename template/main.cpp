@@ -151,7 +151,7 @@ void init_program() {
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
   common::sg.resize(width, height);
-  common::alpha = 8.0f;
+  common::alpha = 16.0f;
 }
 
 void create_primitives_and_send_to_gpu() {
@@ -167,6 +167,7 @@ void create_primitives_and_send_to_gpu() {
   //Since we use the model to get the paths for the textures, I need to do this here
   for (auto t : model.getDiffuseTextures()) {
     std::string texture_file = model_folder + t.filePath;
+    std::cout << "Textfile: " << texture_file << std::endl;
     image::Texture* texture = new image::Texture(texture_file);
     texture->send_to_gpu();
     textures.push_back(texture);
@@ -215,7 +216,7 @@ void render() {
   //Identity matrix
   glm::mat4 I(1.0f);
   //Model
-  glm::mat4 M = I;
+  glm::mat4 M = glm::scale(I, 2.0f * glm::vec3(1.0f));
   if (common::rotating) {
     M = glm::rotate(M, glm::radians(common::current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
   }

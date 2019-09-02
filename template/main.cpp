@@ -62,7 +62,9 @@ int main (int argc, char* argv[]) {
   register_glfw_callbacks();
 
   while (!glfwWindowShouldClose(common::window)) {
-    create_menu();
+    if (common::show_menu) {
+      create_menu();
+    }
     render();
     update();
     glfwSwapBuffers(common::window);
@@ -154,6 +156,7 @@ void init_program() {
   common::ball.setWindowSize(width, height);
   common::sg.resize(width, height);
   common::alpha = 16.0f;
+  common::show_menu = true;
 }
 
 void create_primitives_and_send_to_gpu() {
@@ -209,7 +212,9 @@ void create_primitives_and_send_to_gpu() {
 }
 
 void render() {
-  ImGui::Render(); // Prepare to render our menu, before clearing buffers
+  if (common::show_menu) {
+    ImGui::Render(); // Prepare to render our menu, before clearing buffers  
+  }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ogl_program_ptr->use();
   /************************************************************************/
@@ -261,9 +266,9 @@ void render() {
   for (size_t i = 0; i < separators.size(); ++i) {
     mesh::MeshData sep = separators[i];
     if (sep.diffuseIndex == -1 || sep.specIndex == -1) {
-        //This mesh does is missing some texture
-        //Do not render (Not with this shader at least)
-        continue;
+      //This mesh does is missing some texture
+      //Do not render (Not with this shader at least)
+      continue;
     }
     //Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
@@ -282,8 +287,9 @@ void render() {
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
-  /* Render menu after the geometry of our actual app*/
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  if (common::show_menu) {
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  }
 }
 
 void update() {

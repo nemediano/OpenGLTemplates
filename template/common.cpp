@@ -20,4 +20,6 @@ image::ScreenGrabber sg;
 
 float alpha = 0.0f;
 
+bool show_menu = true;
+
 } //namespace common

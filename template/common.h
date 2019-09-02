@@ -41,6 +41,8 @@ extern std::string context_info;
 
 extern float alpha;
 
+extern bool show_menu;
+
 } //namsepace common
 
 #endif

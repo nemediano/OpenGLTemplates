@@ -30,6 +30,8 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
     common::sg.grab();
+  } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+    common::show_menu = !common::show_menu;
   }
 }
 

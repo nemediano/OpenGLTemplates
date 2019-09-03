@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 // Third party libraries lincludes
-// Dear imgui 
+// Dear imgui
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -90,12 +90,12 @@ void init_glfw() {
   }
   // Library was initializated, now try window and context
   // This depends on the HW (GPU) and SW (Driver), use the best avialble
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   // This lines require OpenGL 4.3 or above, comment them if you dont have it
-  //glfwWindowHint(GLFW_SAMPLES, 4);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   common::window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!common::window) {
@@ -161,7 +161,7 @@ void init_program() {
   // Also, let the screen grabber know the current buffer size
   common::sg.resize(width, height);
   // Initial values for program logic
-  common::alpha = 16.0f;
+  common::alpha = 4.0f;
   common::show_menu = true;
   common::rotating = false;
 }
@@ -179,7 +179,7 @@ void load_model_data_and_send_to_gpu() {
   std::vector<Vertex> vertices = model.getVertices();
   // The separator will tell us how to render, since we destroy the model, we keep a copy
   separators = model.getSeparators();
-  // Since we use the model to get the paths for the textures, I need 
+  // Since we use the model to get the paths for the textures, I need
   // fill the textures collection here
   for (auto t : model.getDiffuseTextures()) {
     std::string texture_file = model_folder + t.filePath;
@@ -222,7 +222,7 @@ void load_model_data_and_send_to_gpu() {
 
 void render() {
   if (common::show_menu) {
-    ImGui::Render(); // Prepare to render our menu, before clearing buffers  
+    ImGui::Render(); // Prepare to render our menu, before clearing buffers
   }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ogl_program_ptr->use();
@@ -260,7 +260,7 @@ void render() {
     glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
   if (u_NormalMat_location != -1) {
-    glUniformMatrix4fv(u_NormalMat_location, 1, GL_FALSE, 
+    glUniformMatrix4fv(u_NormalMat_location, 1, GL_FALSE,
         glm::value_ptr(glm::inverse(glm::transpose(V * M))));
   }
   if (u_Alpha_location != -1) {
@@ -281,11 +281,11 @@ void render() {
     // Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
     textures[sep.diffuseIndex]->bind();
-    glUniform1f(u_DiffuseMap_location, 0);
+    glUniform1i(u_DiffuseMap_location, 0);
     // Send specular texture in unit 1
     glActiveTexture(GL_TEXTURE1);
     textures[sep.specIndex]->bind();
-    glUniform1f(u_SpecularMap_location, 1);
+    glUniform1i(u_SpecularMap_location, 1);
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),
                              sep.startVertex);

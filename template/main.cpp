@@ -1,29 +1,33 @@
+// ANSI C++ includes
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
-// Dear imgui related headers
+
+// Third party libraries lincludes
+// Dear imgui 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-
+// GLEW
 #include <GL/glew.h>
+// GLFW
 #include <GLFW/glfw3.h>
-
+// GLM
 #define GLM_FORCE_PURE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+// Includes from this template
 #include "image/texture.h"
 #include "image/proceduraltextures.h"
+#include "mesh/model.h"
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
+#include "callbacks.h"
 #include "common.h"
 #include "menu.h"
-#include "callbacks.h"
-#include "mesh/model.h"
 
 // Location for shader variables
 GLint u_PVM_location = -1;
@@ -34,33 +38,32 @@ GLint u_Alpha_location = -1;
 GLint a_position_loc = -1;
 GLint a_normal_loc = -1;
 GLint a_textureCoord_loc = -1;
-// OpenGL program handlers
+// OpenGL program handler
 ogl::OGLProgram* ogl_program_ptr = nullptr;
+// To buffers to interact with the Model class
 std::vector<image::Texture*> textures;
 std::vector<mesh::MeshData> separators;
-// Global variables for the program logic
+// To track the elapsed time between frames
 double last_time = 0.0;
-
-// Manage the Vertex Buffer Objects using a Vertex Array Object
+// Vertex Array Object used to manage the Vertex Buffer Objects
 GLuint vao;
-
 // Function declarations
 void init_glfw();
 void load_OpenGL();
 void init_program();
-void create_primitives_and_send_to_gpu();
-
+void load_model_data_and_send_to_gpu();
 void render();
 void update();
 void free_resources();
 
 int main (int argc, char* argv[]) {
+  // Application's setup
   init_glfw();
   load_OpenGL();
   setup_menu();
   init_program();
   register_glfw_callbacks();
-
+  // Application's main loop
   while (!glfwWindowShouldClose(common::window)) {
     if (common::show_menu) {
       create_menu();
@@ -70,8 +73,8 @@ int main (int argc, char* argv[]) {
     glfwSwapBuffers(common::window);
     glfwPollEvents();
   }
+  // Window was closed. Clean and finalize
   free_resources();
-
   return EXIT_SUCCESS;
 }
 
@@ -87,8 +90,10 @@ void init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Library was initializated, now try window and context
+  // This depends on the HW (GPU) and SW (Driver), use the best avialble
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  // This lines require OpenGL 4.3 or above, comment them if you dont have it
   //glfwWindowHint(GLFW_SAMPLES, 4);
   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -102,7 +107,7 @@ void init_glfw() {
   }
   // Save window state
   common::window_state.monitorPtr = glfwGetPrimaryMonitor();
-  // Context setting to happen before OpenGL's extension loader
+  // Context setting needs to happen before OpenGL's extension loader
   glfwMakeContextCurrent(common::window);
   glfwSwapInterval(1);
 }
@@ -118,8 +123,9 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
+  // Save a string with the enviroment and context info (we display it in menu)
   common::context_info = ogl::enviroment_info();
-
+  // If our context allow us, ask for a debug callback
   if (ogl::getErrorLog()) {
     cout << "OpenGL's debug logger active" << endl;
   } else {
@@ -142,11 +148,10 @@ void init_program() {
   a_normal_loc = ogl_program_ptr->attribLoc("normalAttr");
   a_textureCoord_loc = ogl_program_ptr->attribLoc("textCoordAttr");
   /* Then, create primitives and send data to GPU */
-  create_primitives_and_send_to_gpu();
-  //Initialize some basic rendering state
+  load_model_data_and_send_to_gpu();
+  // Initialize some basic rendering state
   glEnable(GL_DEPTH_TEST);
-  //Dark gray background color
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(0.15f, 0.15f, 0.15f, 1.0f); // Dark gray background color
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   // Initialize trackball camera
@@ -154,31 +159,36 @@ void init_program() {
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
+  // Also let the screen grabbe know, current buffer size
   common::sg.resize(width, height);
+  // Initial values for program logic
   common::alpha = 16.0f;
   common::show_menu = true;
+  common::rotating = false;
 }
 
-void create_primitives_and_send_to_gpu() {
+void load_model_data_and_send_to_gpu() {
   using namespace mesh;
+  // Models location in filesystem
   const std::string model_folder = "models/Nyra/";
   const std::string model_path = model_folder + "Nyra_pose.obj";
-
+  // Read model data
   Model model{model_path};
-  model.toUnitCube();
+  model.toUnitCube(); // Rescale model
+  // Query data
   std::vector<unsigned int> indices = model.getIndices();
   std::vector<Vertex> vertices = model.getVertices();
+  // The separator will tell us how to render, since we destroy the model, we keep a copy
   separators = model.getSeparators();
-  //Since we use the model to get the paths for the textures, I need to do this here
+  // Since we use the model to get the paths for the textures, I need 
+  // fill the textures collection here
   for (auto t : model.getDiffuseTextures()) {
     std::string texture_file = model_folder + t.filePath;
-    //std::cout << "Textfile: " << texture_file << std::endl;
     image::Texture* texture = new image::Texture(texture_file);
     texture->send_to_gpu();
     textures.push_back(texture);
   }
-
-  //Create the vertex buffer objects and VAO
+  // Create the vertex buffer objects and VAO
   GLuint vbo;
   GLuint indexBuffer;
   glGenVertexArrays(1, &vao);
@@ -186,7 +196,7 @@ void create_primitives_and_send_to_gpu() {
   glGenBuffers(1, &indexBuffer);
   // Bind the vao this need to be done before anything
   glBindVertexArray(vao);
-  //Send data to GPU: first send the vertices
+  // Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
   glEnableVertexAttribArray(a_position_loc);
@@ -198,7 +208,7 @@ void create_primitives_and_send_to_gpu() {
   glEnableVertexAttribArray(a_textureCoord_loc);
   glVertexAttribPointer(a_textureCoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, textCoords));
-  //Now, the indices
+  // Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
                indices.data(), GL_STATIC_DRAW);
@@ -218,9 +228,9 @@ void render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   ogl_program_ptr->use();
   /************************************************************************/
-  /* Calculate  Model View Projection Matrices                            */
+  /* Calculate  Model, View and Projection Matrices                       */
   /************************************************************************/
-  //Identity matrix
+  // Identity matrix, as start for some calculations
   glm::mat4 I(1.0f);
   //Model
   glm::mat4 M = glm::scale(I, 2.0f * glm::vec3(1.0f));
@@ -234,13 +244,12 @@ void render() {
   glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
   // Use trackball to get a rotation applied to the camera's initial pose
   glm::mat4 V = Cam_Init_Pos * common::ball.getRotation();
-  //Projection
+  // Projection
   int width;
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   GLfloat aspect = float(width) / float(height);
-  //Math constant equal two PI (Remember, we are in radians)
-  const float TAU = 6.28318f;
+  const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
   GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
@@ -266,15 +275,15 @@ void render() {
   for (size_t i = 0; i < separators.size(); ++i) {
     mesh::MeshData sep = separators[i];
     if (sep.diffuseIndex == -1 || sep.specIndex == -1) {
-      //This mesh does is missing some texture
-      //Do not render (Not with this shader at least)
+      // This mesh does is missing some texture
+      // Do not render (Not with this shader at least)
       continue;
     }
-    //Send diffuse texture in unit 0
+    // Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
     textures[sep.diffuseIndex]->bind();
     glUniform1f(u_DiffuseMap_location, 0);
-    //Send specular texture in unit 1
+    // Send specular texture in unit 1
     glActiveTexture(GL_TEXTURE1);
     textures[sep.specIndex]->bind();
     glUniform1f(u_SpecularMap_location, 1);
@@ -282,26 +291,29 @@ void render() {
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),
                              sep.startVertex);
   }
-  // Clean state
+  // Clean the state for other render (could be the UI, or next frame)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   glUseProgram(0);
+  // Render the user menu
   if (common::show_menu) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
 }
 
 void update() {
+  // We use GLFW (rather than OpenGL) to timer
   double time = glfwGetTime();
-  double elapsed = time - last_time;
+  double elapsed = time - last_time; // elapsed is time in seconds between frames
   last_time = time;
-  /*If rotating update angle*/
+  /* If rotating update angle*/
   if (common::rotating) {
-    const float speed = 180.0f; //In degrees per second
+    const float speed = 180.0f; // In degrees per second
     common::current_angle += float(elapsed) * speed;
     if (common::current_angle > 360.0f) {
       int quotient = int(common::current_angle / 360.0f);
+      // Current angle is the float point modulo with 360.0f of previous current angle
       common::current_angle -= quotient * 360.0f;
     }
   }
@@ -312,12 +324,13 @@ void free_resources() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+  /* Delete texture pointers */
   for (size_t i = 0; i < textures.size(); ++i) {
     delete textures[i];
   }
   /* Delete OpenGL program */
   delete ogl_program_ptr;
-  //Window and context destruction
+  // Window and context destruction
   glfwDestroyWindow(common::window);
 }
 

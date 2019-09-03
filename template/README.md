@@ -6,7 +6,7 @@ The template requires an intermediate level [OpenGL](http://www.opengl.org/) use
 
 ![template](../img/template.png)
 
-The template is composed of several files, in their corresponding folders. Ideally, you will only need to change/adapt the files in the base directory: main.cpp, commons.{h,cpp}, callbacks.{h,cpp}
+The template is composed of several files in their corresponding folders. Ideally, you will only need to change/adapt the files in the base directory: `main.cpp`, `commons.{h,cpp}`, `callbacks.{h,cpp}`.
 
 ## Features
 

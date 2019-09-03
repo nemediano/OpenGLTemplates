@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 // Third party libraries lincludes
 // Dear imgui 
 #include "imgui/imgui.h"
@@ -159,7 +158,7 @@ void init_program() {
   int height;
   glfwGetWindowSize(common::window, &width, &height);
   common::ball.setWindowSize(width, height);
-  // Also let the screen grabbe know, current buffer size
+  // Also, let the screen grabber know the current buffer size
   common::sg.resize(width, height);
   // Initial values for program logic
   common::alpha = 16.0f;
@@ -275,8 +274,8 @@ void render() {
   for (size_t i = 0; i < separators.size(); ++i) {
     mesh::MeshData sep = separators[i];
     if (sep.diffuseIndex == -1 || sep.specIndex == -1) {
-      // This mesh does is missing some texture
-      // Do not render (Not with this shader at least)
+      // This mesh is missing some texture
+      // Do not render (Not with these shaders at least)
       continue;
     }
     // Send diffuse texture in unit 0
@@ -333,5 +332,3 @@ void free_resources() {
   // Window and context destruction
   glfwDestroyWindow(common::window);
 }
-
-

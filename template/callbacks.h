@@ -14,5 +14,6 @@ void cursor_position_callback(GLFWwindow* windowPtr, double xpos, double ypos);
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
 
 void change_window_mode();
+GLFWmonitor* find_best_monitor(GLFWwindow *window);
 
 #endif

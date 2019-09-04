@@ -2,8 +2,8 @@
 
 #include "imgui/imgui.h"
 
-#include "common.h"
 #include "callbacks.h"
+#include "common.h"
 
 void register_glfw_callbacks() {
   glfwSetWindowSizeCallback(common::window, resize_callback);
@@ -97,8 +97,52 @@ void change_window_mode() {
   } else { // go to full screen
     glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
     glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
+    common::window_state.monitorPtr = find_best_monitor(common::window);
     const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
     glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
         mode->height, mode->refreshRate);
   }
+}
+
+/**
+ * I took this algorithm (idea) from here:
+ * http://stackoverflow.com/questions/21421074/
+ *     how-to-create-a-full-screen-window-on-the-current-monitor-with-glfw
+ */
+
+GLFWmonitor* find_best_monitor(GLFWwindow *windowPtr) {
+  // Get window's info: position and size
+  glm::ivec2 win_pos;
+  glm::ivec2 win_size;
+  glfwGetWindowPos(windowPtr, &win_pos.x, &win_pos.y);
+  glfwGetWindowSize(windowPtr, &win_size.x, &win_size.y);
+  // Query the number of monitors and get handle of them
+  int num_monitors = 0;
+  GLFWmonitor **monitors = glfwGetMonitors(&num_monitors);
+  // The initial best values is minimun possible: no overlaping
+  int best_overlap = 0;
+  GLFWmonitor *best_monitor = nullptr;
+  // Loop checking all the available monitors to see
+  // if one of them has better overlaping area.
+  for (int i = 0; i < num_monitors; i++) {
+    // Get current monitor's info
+    glm::ivec2 mon_pos;
+    glm::ivec2 mon_size;
+    const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
+    mon_size.x = mode->width;
+    mon_size.y = mode->height;
+    glfwGetMonitorPos(monitors[i], &mon_pos.x, &mon_pos.y);
+    // Calculate the area of overlap between this monitor and the window
+    // The overlap is always a rectangle, so rect height time rect width
+    int overlap =
+      glm::max(0, glm::min(win_pos.x + win_size.x, mon_pos.x + mon_size.x) - glm::max(win_pos.x, mon_pos.x)) *  // width
+      glm::max(0, glm::min(win_pos.y + win_size.y, mon_pos.y + mon_size.y) - glm::max(win_pos.y, mon_pos.y));   // height
+    // If this area is better than our current best, then this is the new best
+    if (best_overlap < overlap) {
+      best_overlap = overlap;
+      best_monitor = monitors[i];
+    }
+  }
+
+  return best_monitor;
 }

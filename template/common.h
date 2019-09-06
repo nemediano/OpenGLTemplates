@@ -8,9 +8,15 @@
 #include "ui/trackball.h"
 #include "image/screengrabber.h"
 
+//! This is a list of global variables (across source files)
+/*!
+  This is a bad programming habit, but remember we do not have a main class
+  and we split the main application code across several source files
+  To mitigate this fact, we place them insie the namespace common
+*/
 namespace common {
 
-// Keep track of the window state
+//! Represents the state of a window in windoed mode
 class WindowState {
 public:
   GLFWmonitor* monitorPtr;
@@ -20,27 +26,37 @@ public:
   int height;
 };
 
+//! Object used to take screen-shoots
 extern image::ScreenGrabber sg;
 
+//! To store the state of window (before goiong into full-screen) so it can return to it later
 extern WindowState window_state;
 
-// Window and context handle
+//! Main GLFW window and context handle
 extern GLFWwindow* window;
 
-//
+//! Object used to cotroll the trackball camera's rotation
 extern ui::Trackball ball;
 
-
+//! Keep track if we are in camera edit mode
 extern bool mouse_drag;
+
+//! The current zoom level of the camera
 extern int zoom_level;
 
+//! Keep track if we are in roataion mode
 extern bool rotating;
+
+//! Keep track of the current angle (in degree)
 extern float current_angle;
 
+//! Contains the information about the current OpenGL context and the libraries version
 extern std::string context_info;
 
+//! Specular exponent (for the Phong shading model)
 extern float alpha;
 
+//! Keep track if we render or not the user menu
 extern bool show_menu;
 
 } //namsepace common

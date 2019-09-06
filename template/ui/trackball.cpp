@@ -104,4 +104,4 @@ glm::mat4 Trackball::getRotation() const {
   return glm::mat4_cast(m_newRotation * m_baseRotation);
 }
 
-} // namespace
+} // namespace ui

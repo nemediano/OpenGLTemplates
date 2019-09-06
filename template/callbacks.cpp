@@ -43,12 +43,14 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
   }
   //The event happen outside the GUI, your application should try to handle it
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    // Start the mouse dragging event (edit camera mode)
     common::mouse_drag = true;
     double mouse_x;
     double mouse_y;
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
     common::ball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+    // Stops the mouse dragging (exists edit camera mode)
     common::ball.endDrag();
     common::mouse_drag = false;
   }
@@ -62,28 +64,38 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
   }
 
   if (common::mouse_drag) {
+    // If we are editing the camera, let the trackball update too
     common::ball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
   }
 }
 
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
+  // If the user actiave the mouse wheel, change the zoom level
   common::zoom_level += int(y_offset);
+  // zoom level is an integer between [-5, 5]
   common::zoom_level = glm::clamp(common::zoom_level, -5, 5);
 }
 
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
+  // Update OpenGl viewport
   glViewport(0, 0, new_window_width, new_window_height);
+  // Update the tracjball size
   common::ball.setWindowSize(new_window_width, new_window_height);
 }
 
 void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
+  // Update the screengrabber resolution, I do this here an not in the resize
+  // because the resolution could change without the window size changed
+  // For example, the window could move into a higer resolution display
+  // The screen grabber need to match the framebuffer (not the window size)
   common::sg.resize(width, height);
 }
 
 void glfw_error_callback(int error, const char* description) {
   using std::cerr;
   using std::endl;
-  cerr << "GLFW Error: " << description << endl;
+  // Print the error too console as it is
+  cerr << "GLFW Error (" << error << "): " << description << endl;
 }
 
 void change_window_mode() {
@@ -91,13 +103,14 @@ void change_window_mode() {
   GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
 
   if (monitor) { // Go to windowed mode
-    common::window_state.monitorPtr = monitor;
     glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
         common::window_state.width, common::window_state.height, 0);
   } else { // go to full screen
+    // Store you current state
     glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
     glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
     common::window_state.monitorPtr = find_best_monitor(common::window);
+    // Now go, to full-screnn mode
     const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
     glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
         mode->height, mode->refreshRate);
@@ -105,38 +118,41 @@ void change_window_mode() {
 }
 
 /**
- * I took this algorithm (idea) from here:
+ * I took this algorithm (and idea) and adapted the code from here:
  * http://stackoverflow.com/questions/21421074/
  *     how-to-create-a-full-screen-window-on-the-current-monitor-with-glfw
+ * Returns the monitor which contains the greater area of the window
  */
-
 GLFWmonitor* find_best_monitor(GLFWwindow *windowPtr) {
+  using glm::min;
+  using glm::max;
   // Get window's info: position and size
-  glm::ivec2 win_pos;
-  glm::ivec2 win_size;
-  glfwGetWindowPos(windowPtr, &win_pos.x, &win_pos.y);
-  glfwGetWindowSize(windowPtr, &win_size.x, &win_size.y);
+  glm::ivec2 winPos;
+  glm::ivec2 winSize;
+  glfwGetWindowPos(windowPtr, &winPos.x, &winPos.y);
+  glfwGetWindowSize(windowPtr, &winSize.x, &winSize.y);
   // Query the number of monitors and get handle of them
   int num_monitors = 0;
   GLFWmonitor **monitors = glfwGetMonitors(&num_monitors);
-  // The initial best values is minimun possible: no overlaping
+  // The initial best value is the minimun possible, i.e: no overlaping
   int best_overlap = 0;
   GLFWmonitor *best_monitor = nullptr;
+
   // Loop checking all the available monitors to see
   // if one of them has better overlaping area.
   for (int i = 0; i < num_monitors; i++) {
     // Get current monitor's info
-    glm::ivec2 mon_pos;
-    glm::ivec2 mon_size;
+    glm::ivec2 monPos;
+    glm::ivec2 monSize;
+    glfwGetMonitorPos(monitors[i], &monPos.x, &monPos.y);
     const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-    mon_size.x = mode->width;
-    mon_size.y = mode->height;
-    glfwGetMonitorPos(monitors[i], &mon_pos.x, &mon_pos.y);
+    monSize.x = mode->width;
+    monSize.y = mode->height;
     // Calculate the area of overlap between this monitor and the window
-    // The overlap is always a rectangle, so rect height time rect width
+    // The overlap is always a rectangle, so area equals height times width
     int overlap =
-      glm::max(0, glm::min(win_pos.x + win_size.x, mon_pos.x + mon_size.x) - glm::max(win_pos.x, mon_pos.x)) *  // width
-      glm::max(0, glm::min(win_pos.y + win_size.y, mon_pos.y + mon_size.y) - glm::max(win_pos.y, mon_pos.y));   // height
+      max(0, min(winPos.x + winSize.x, monPos.x + monSize.x) - max(winPos.x, monPos.x)) * // width
+      max(0, min(winPos.y + winSize.y, monPos.y + monSize.y) - max(winPos.y, monPos.y));  // height
     // If this area is better than our current best, then this is the new best
     if (best_overlap < overlap) {
       best_overlap = overlap;

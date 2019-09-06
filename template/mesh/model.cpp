@@ -43,7 +43,7 @@ std::vector<MeshData> Model::getSeparators() const {
 }
 
 int Model::numMeshes() {
-  //We have separator at the bigining and at the end
+  //We have a separator at the begining and at the end
   return static_cast<int>(mSeparators.size() - 1);
 }
 
@@ -61,7 +61,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
 }
 
 void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
-  //Parse Mesh data
+  // Parse Mesh data
   if (!mesh || !mesh->HasPositions() || !scene) {
     std::cerr << "Weird mesh without vertex positions!" << std::endl;
     return;
@@ -70,8 +70,7 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
   MeshData bookMark;
   /* First the indices */
   unsigned int numFaces = mesh->mNumFaces;
-  //I believe that I need to calculate an offset
-  //unsigned int offset = mVertices.size();
+  // keep the current number of indices (before adding this mesh)
   unsigned int indicesBefore = static_cast<unsigned int>(mIndices.size());
   for (unsigned int t = 0; t < numFaces; ++t) {
     const aiFace* face = &mesh->mFaces[t];
@@ -79,6 +78,7 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
       mIndices.push_back(face->mIndices[i]);
     }
   }
+  // Start filling this mesh's separators info
   unsigned int indicesAfter = static_cast<unsigned int>(mIndices.size());
   bookMark.startIndex = int(indicesBefore);
   bookMark.howMany = int(indicesAfter - indicesBefore);
@@ -104,6 +104,7 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
     mVertices.push_back(v);
   }
 
+  // Add textures for this mesh to our collection
   int diffuseTexture = -1;
   int specularTexture = -1;
   if (mesh->mMaterialIndex > 0) {
@@ -111,7 +112,7 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
     diffuseTexture = addDiffuseTexture(material);
     specularTexture = addSpecularTexture(material);
   }
-
+  // Finish filling the separator for this mesh
   bookMark.diffuseIndex = diffuseTexture;
   bookMark.specIndex = specularTexture;
   mSeparators.push_back(bookMark);
@@ -140,7 +141,7 @@ int Model::addDiffuseTexture(const aiMaterial* mat) {
     }
   }
 
-  //It's is not then create it an push it into the vector
+  //If it's is not then create it an push it into the vector
   TextureImage text;
   text.type = DIFFUSE;
   text.filePath = textPath;

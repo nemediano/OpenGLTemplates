@@ -24,8 +24,11 @@ Texture defaultStencil(float cutoff, unsigned int size) {
       }  else if (distanceNormalized < 1.0f) {
         float s = (distanceNormalized - cutoff) / (1.0f - cutoff);
         greyLevel = 1.0f - s;
-      } else {          greyLevel = 0.0f;       }
-      /*vec4 pixel = vec4(vec3(greyLevel), 1.0f);
+      } else {
+        greyLevel = 0.0f;
+      }
+      /*
+      vec4 pixel = vec4(vec3(greyLevel), 1.0f);
       unsigned char red = static_cast<unsigned char>(255.0f * pixel.r);
       unsigned char green = static_cast<unsigned char>(255.0f * pixel.g);
       unsigned char blue = static_cast<unsigned char>(255.0f * pixel.b);
@@ -33,7 +36,8 @@ Texture defaultStencil(float cutoff, unsigned int size) {
       t.m_data[(i * t.m_width + j) * bytesPerPixel + 0] = red;
       t.m_data[(i * t.m_width + j) * bytesPerPixel + 1] = green;
       t.m_data[(i * t.m_width + j) * bytesPerPixel + 2] = blue;
-      t.m_data[(i * t.m_width + j) * bytesPerPixel + 3] = alpha;*/
+      t.m_data[(i * t.m_width + j) * bytesPerPixel + 3] = alpha;
+      */
       unsigned char grey = math::toICol(greyLevel);
       t.m_data[(i * t.m_width + j) * bytesPerPixel + 0] = grey;
       t.m_data[(i * t.m_width + j) * bytesPerPixel + 1] = grey;

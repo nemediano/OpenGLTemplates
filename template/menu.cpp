@@ -10,8 +10,9 @@ void setup_menu() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO(); (void)io;
-
+  // Basic look and feel
   ImGui::StyleColorsDark();
+  // Use standard connection with GLFW and modern OpenGL
   ImGui_ImplGlfw_InitForOpenGL(common::window, true);
   const char* glsl_version{"#version 130"};
   ImGui_ImplOpenGL3_Init(glsl_version);
@@ -28,7 +29,7 @@ void create_menu() {
     if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
       common::current_angle = 0.0f;
     }
-    ImGui::SliderFloat("Alpha", &common::alpha, 0.0f, 128.0f, "%.1f", 2.0f);
+    ImGui::SliderFloat("Alpha", &common::alpha, 0.0f, 16.0f, "%.1f", 2.0f);
     if (ImGui::CollapsingHeader("Enviroment info:")) {
       ImGui::Text("%s", common::context_info.c_str());
     }

@@ -20,6 +20,8 @@ The template is composed of several files in their corresponding folders. Ideall
 
 ![template](../img/menuTemplate.png)
 
+![template](../img/full-screen.png)
+
 ## Usage
 
 The template requires working installation of the following libraries

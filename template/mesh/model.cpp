@@ -15,19 +15,19 @@ Model::Model(const std::string& fileName) : Mesh(){
 bool Model::load(const std::string& fileName) {
   // Create an instance of the Importer class
   Assimp::Importer importer;
-
+  // Loads the mesh data and metadata into memmory
   const aiScene* scenePtr = importer.ReadFile( fileName,
       aiProcess_GenNormals       |
       aiProcess_Triangulate            |
       aiProcess_JoinIdenticalVertices);
 
-  /* If the import failed, report it (I am guessing that he will be able
-   to check if the file exist and if its writable itself. */
+  /* If the importer failed, report it (I am guessing that he will be able
+   to check if the file exist and if it's writable) as it is. */
   if(!scenePtr || scenePtr->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scenePtr->mRootNode) {
     std::cerr << importer.GetErrorString() << std::endl;
     return false;
   }
-
+  // Clear our data buffers
   mIndices.clear();
   mVertices.clear();
   mSeparators.clear();
@@ -53,7 +53,6 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     addMeshData(mesh, scene);
   }
-
   // Then, recursivelly procees the child nodes
   for(unsigned int i = 0; i < node->mNumChildren; i++) {
     processNode(node->mChildren[i], scene);
@@ -109,8 +108,8 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
   int specularTexture = -1;
   if (mesh->mMaterialIndex > 0) {
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    diffuseTexture = addDiffuseTexture(material);
-    specularTexture = addSpecularTexture(material);
+    diffuseTexture = addTexture(material, aiTextureType_DIFFUSE);
+    specularTexture = addTexture(material, aiTextureType_SPECULAR);
   }
   // Finish filling the separator for this mesh
   bookMark.diffuseIndex = diffuseTexture;
@@ -118,65 +117,60 @@ void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
   mSeparators.push_back(bookMark);
 }
 
-
-int Model::addDiffuseTexture(const aiMaterial* mat) {
+int Model::addTexture(const aiMaterial* mat, aiTextureType ai_type) {
   if (!mat) {
       return -1;
   }
-
+  // Try to get a texture name of this type in this material
   std::string textPath = "";
-  if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+  if (mat->GetTextureCount(ai_type) > 0) {
     aiString fileName;
-    mat->GetTexture(aiTextureType_DIFFUSE, 0, &fileName);
+    mat->GetTexture(ai_type, 0, &fileName);
     textPath = std::string(fileName.C_Str());
   } else {
-    //NO diffuse texture for this Mesh
+    //NO texture of this type for this Mesh
     return -1;
   }
-
   //Check if this texture is already in the vector
   for (size_t i = 0; i < mTexturesData.size(); ++i) {
     if (mTexturesData[i].filePath == textPath) {
-      return int(i);
+      return int(i); // If it is, return the index
     }
   }
-
-  //If it's is not then create it an push it into the vector
+  //It's is not, then create it an push it into the vector
   TextureImage text;
-  text.type = DIFFUSE;
+  text.type = toTextType(ai_type);
   text.filePath = textPath;
   mTexturesData.push_back(text);
   return static_cast<int>(mTexturesData.size() - 1);
+  
 }
 
-int Model::addSpecularTexture(const aiMaterial* mat) {
-  if (!mat) {
-      return -1;
+
+// Helper function to map between our texture types and those used by Assimp
+TextType Model::toTextType(aiTextureType ai_type) {
+  
+  TextType type = OTHER;
+  
+  switch (ai_type) {
+    
+    case aiTextureType_DIFFUSE:
+      type = DIFFUSE;
+    break;
+    
+    case aiTextureType_SPECULAR:
+      type = SPECULAR;
+    break;
+
+    case aiTextureType_NORMALS:
+      type = NORMALS;
+    break;
+
+    default:
+      type = OTHER;
   }
 
-  std::string textPath = "";
-  if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-    aiString fileName;
-    mat->GetTexture(aiTextureType_SPECULAR, 0, &fileName);
-    textPath = std::string(fileName.C_Str());
-  } else {
-    //NO specular texture for this Mesh
-    return -1;
-  }
-
-  //Check if this texture is already in the vector
-  for (size_t i = 0; i < mTexturesData.size(); ++i) {
-    if (mTexturesData[i].filePath == textPath) {
-      return int(i);
-    }
-  }
-
-  //It's is not then create it an push it into the vector
-  TextureImage text;
-  text.type = SPECULAR;
-  text.filePath = textPath;
-  mTexturesData.push_back(text);
-  return static_cast<int>(mTexturesData.size() - 1);
+  return type;
 }
 
 std::vector<TextureImage> Model::getDiffuseTextures() const {

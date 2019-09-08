@@ -3,10 +3,10 @@
 
 //! Functions related to the GUI
 /*!
-  Uses Dear ImGUI, the suurce files of the librarie are in the imgui folder
+  Uses Dear ImGUI, the source files of the librarie are in the imgui folder
 */
 
-//! Setup the IMGUI library to work with current OpenGL and GLFW, also general lookk and feel
+//! Setup the IMGUI library to work with current OpenGL and GLFW, also general look and feel
 void setup_menu();
 //! Create the actual user menu of the application and connect the application with it.
 /*!

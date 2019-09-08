@@ -10,13 +10,15 @@
 
 //! This is a list of global variables (across source files)
 /*!
+  In this file we list the variables to be included in other files.
+  
   This is a bad programming habit, but remember we do not have a main class
   and we split the main application code across several source files
-  To mitigate this fact, we place them insie the namespace common
+  To mitigate this fact, we place them inside the namespace common
 */
 namespace common {
 
-//! Represents the state of a window in windoed mode
+//! Represents the state of a window in windowed mode
 class WindowState {
 public:
   GLFWmonitor* monitorPtr;
@@ -53,7 +55,7 @@ extern float current_angle;
 //! Contains the information about the current OpenGL context and the libraries version
 extern std::string context_info;
 
-//! Specular exponent (for the Phong shading model)
+//! Specular exponent (for the Blinn-Phong shading model)
 extern float alpha;
 
 //! Keep track if we render or not the user menu

@@ -23,14 +23,15 @@ void create_menu() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
-  // Draw the menu
-  ImGui::Begin("Basic template menu");
-    ImGui::Text("Options");
-    if (ImGui::Checkbox("Rotate", &common::rotating)) { //Imgui's controls return true on interaction
-      common::current_angle = 0.0f;
+  // Draw the ui menu
+  ImGui::Begin("Basic template menu"); //Name of the menu
+    ImGui::Text("Options"); //Simple text
+    //Imgui's controls return true on interaction
+    if (ImGui::Checkbox("Rotate", &common::rotating)) { 
+      common::current_angle = 0.0f; // So, besides setting variable we can execute code
     }
     ImGui::SliderFloat("Alpha", &common::alpha, 0.0f, 16.0f, "%.1f", 2.0f);
-    if (ImGui::CollapsingHeader("Enviroment info:")) {
+    if (ImGui::CollapsingHeader("Enviroment info:")) { // Submenu
       ImGui::Text("%s", common::context_info.c_str());
     }
     if (ImGui::CollapsingHeader("Application stats")) {

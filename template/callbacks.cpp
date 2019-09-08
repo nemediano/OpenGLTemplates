@@ -50,7 +50,7 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
     common::ball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-    // Stops the mouse dragging (exists edit camera mode)
+    // Stops the mouse dragging (exit edit camera mode)
     common::ball.endDrag();
     common::mouse_drag = false;
   }
@@ -79,22 +79,25 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   // Update OpenGl viewport
   glViewport(0, 0, new_window_width, new_window_height);
-  // Update the tracjball size
+  // Update the trackball size
   common::ball.setWindowSize(new_window_width, new_window_height);
 }
 
 void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
   // Update the screengrabber resolution, I do this here an not in the resize
   // because the resolution could change without the window size changed
-  // For example, the window could move into a higer resolution display
-  // The screen grabber need to match the framebuffer (not the window size)
+  // For example, if the window moves into a higer resolution display
+  // The screen grabber needs to match the framebuffer (not the window size)
   common::sg.resize(width, height);
 }
 
 void glfw_error_callback(int error, const char* description) {
+  /* If this function is executed an internal GLFW error was generated and the program will likely
+  crash. The most common failure, is that the application tries to create an OpenGL context superior
+  to the one actually supported by your SW (driver) and HW (GPU) */
   using std::cerr;
   using std::endl;
-  // Print the error too console as it is
+  // Print the error to console as it is
   cerr << "GLFW Error (" << error << "): " << description << endl;
 }
 
@@ -103,17 +106,17 @@ void change_window_mode() {
   GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
 
   if (monitor) { // Go to windowed mode
-    glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
-        common::window_state.width, common::window_state.height, 0);
+    //glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
+    //    common::window_state.width, common::window_state.height, 0);
   } else { // go to full screen
     // Store you current state
     glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
     glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
     common::window_state.monitorPtr = find_best_monitor(common::window);
     // Now go, to full-screnn mode
-    const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
-    glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
-        mode->height, mode->refreshRate);
+    ///const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
+    //glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
+    //    mode->height, mode->refreshRate);
   }
 }
 

@@ -12,8 +12,8 @@
 void register_glfw_callbacks();
 //! Callback function for internal GLFW errors
 /*!
-  If this function is executed an internal GLFW was generated and the program will likely crash
-  The most common failure, is that the application tries to create an OpenGL context superior
+  If this function is executed an internal GLFW error was generated and the program will likely
+  crash. The most common failure, is that the application tries to create an OpenGL context superior
   to the one actually supported by your SW (driver) and HW (GPU)
 */
 void glfw_error_callback(int error, const char* description);
@@ -33,8 +33,8 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
 // Helper functions
 //! Switches between full-screen and windowed mode
 /*!
-  Queries if the window is in windowed mode. If it is, stores the current window state
-  and switches to full-screen mode. If it is not (ahence we are full-screen) reatrives
+  Queries if the window is in windowed mode. If it is, then stores the current window state
+  and switches to full-screen mode. If it is not (hence we are full-screen) then reatrives
   the previous window state (position and size) and returns to windowed mode
 */
 void change_window_mode();

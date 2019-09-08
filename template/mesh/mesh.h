@@ -23,7 +23,7 @@ namespace mesh {
 /*!
   It contains a simple vertex with interleaved data of the most common
   attributes for rendering. A position, a normal vector and texture coordinates.
-  The \class Mesh a \class Model classes will use it as interface with the user
+  The \class Mesh and \class Model classes will use it as interface with the user
   classes
 */
 struct Vertex {
@@ -33,7 +33,7 @@ struct Vertex {
 };
 //! A struct that represents a \struct Triangle.
 /*!
-  It is used to as an interface. If you create a vector of this strcut you
+  It is used to as an interface. If you create a vector of this struct you
   can use it to construct a mesh object. See the load from triangles
 */
 struct Triangle {
@@ -46,12 +46,12 @@ struct Triangle {
   This class only deals with simple model that contain just a single mesh. If you
   want to load a scene that contains several meshes. Then the \class Model class
   should be used.
-  This class only pulls the data form a file and provide a way to interact with
-  it and pass it to another class that can render it. In this sense, this calss
+  This class only pulls the data from a file and provide a way to interact with
+  it by passing it to another class that can render it. In this sense, this class
   has nothing to do with GPU or OpenGL rendering
   Given said the above, you can use it as a helper for a user class that
   actually does render. And Mesh is designed to facilitate all the data in the
-  a format that is appropaita so the user class can pass it to the GPU and then
+  a format that is appropiate so the user class can pass it to the GPU and then
   render it using OpenGL
 */
 class Mesh {
@@ -64,11 +64,11 @@ protected:
   glm::vec3 mLowerCorner;
   std::string mDiffuseText;
   void updateBoundingBox();
-  void addTexture(const aiMaterial* mat);
+  void addDiffuseTexture(const aiMaterial* mat);
 public:
   //! Simple constructor that does nothing.
   /*!
-    It can be used if you want to use the class to create ans save a mesh
+    It can be used if you want to use the class to create and save a mesh
     that you create by giving triangles.
   */
   Mesh();
@@ -79,7 +79,7 @@ public:
   */
   explicit Mesh(const std::string& fileName);
   ~Mesh();
-  //! Erases the data and then load a new \class Mesh form the file.
+  //! Erases the data and then load a new \class Mesh from the file.
   bool loadFromFile(const std::string& fileName);
   //! Queries if this Mesh has no data.
   bool empthy() const;
@@ -100,28 +100,28 @@ public:
   /*!
     One of the important interface functions. Since Model always stores data
     as an indexed array. This will give you an array with the indexes that you
-    can use it to draw if you bound a corresponding VBO (See getVertices)
+    can use it to draw if you bound it to the corresponding VBO (See getVertices)
   */
   std::vector<unsigned int> getIndices() const;
   //! get the vertices needed to create a VBO for getiing this mesh into the GPU
   /*!
     One of the important interface functions. Since Mesh always stores data
     in an indexed buffer. This method will give you the buffer that you
-    can use it to draw if you bound an use the corresponding indices buffer
+    can use it to fill a VBO an use the corresponding indices buffer
     See (getIndices)
     Remember that the Mesh is always a triangular mesh so the number of
     indices is number of triangles times three
   */
   std::vector<Vertex> getVertices() const;
-  //! Clear and cretes a new Mesh using the data provided
+  //! Clear and creates a new Mesh using the data provided
   /*!
     Recreates the object by providing data. The Mesh are indexed, so they
-    need to provide two array one with the indexes and one with the vertices
+    need to provide two arrays one with the indexes and one with the vertices
     Since the Vertex format is fixed they user needs to declare if the normals
     and texture corrdinates are present
   */
   bool loadVerticesAndIndices(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, bool normals = false, bool textCoords = false);
-  //! Clear and cretes a new Mesh using the data provided
+  //! Clear and creates a new Mesh using a set of triangles
   /*!
     Recreates the object by providing data. Since the mesh is triangulated
     you can provide a set of triangles. The format of the triangles is fixed
@@ -131,15 +131,7 @@ public:
     It will produce a mesh without normal nor texture coordinates.
   */
   bool loadFromTriangles(const std::vector<Triangle>& triangles);
-  //! Calculate the scale factor tha will make this an
-  /*!
-    Recreates the object by providing data. Since the mesh is triangulated
-    you can provide a set of triangles. The format of the triangles is fixed
-    In order to create an indexed mesh for triangles, the Mesh will join all
-    the vertex that are DELTA apart and will consider them the same vertex.
-    This tends to create smoth meshes.
-    It will produce a mesh witout normal nor texture coordinates.
-  */
+  //! Calculate the scale factor that will make this Mesh tighly fit in a unit cube
   float scaleFactor() const;
   //! Get the center of the axis aligned boundig box of the Mesh
   glm::vec3 getBBCenter() const;

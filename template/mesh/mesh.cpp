@@ -34,27 +34,24 @@ bool Mesh::loadFromFile(const std::string& fileName) {
   using std::endl;
   // Create an instance of the Importer class
   Assimp::Importer importer;
-
   const aiScene* scenePtr = importer.ReadFile(fileName,
       aiProcess_CalcTangentSpace       |
       aiProcess_Triangulate            |
       aiProcess_JoinIdenticalVertices  |
       aiProcess_SortByPType);
-
   /* If the import failed, report it (I am guessing that he will be able
   to check if the file exist and if its writable itself. */
   if( !scenePtr) {
     cerr << importer.GetErrorString() << endl;
     return false;
   }
-
-  //Parse Mesh data
+  // See if the file contains a mesh and if it has at least positions
   const aiMesh* mesh = scenePtr->mMeshes[0];
   if (!mesh->HasPositions()) {
     cerr << "Weird mesh without vertex positions!" << endl;
     return false;
   }
-
+  // Parse Mesh data
   /* First the indices */
   unsigned int numFaces = mesh->mNumFaces;
   for (unsigned int t = 0; t < numFaces; ++t) {
@@ -63,12 +60,10 @@ bool Mesh::loadFromFile(const std::string& fileName) {
       mIndices.push_back(face->mIndices[i]);
     }
   }
-
   /* Now, the Vertices */
   Vertex v;
   mHasNormals = mesh->HasNormals();
   mHasTexture = mesh->HasTextureCoords(0);
-
   for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
     v.position.x = mesh->mVertices[i].x;
     v.position.y = mesh->mVertices[i].y;
@@ -84,18 +79,19 @@ bool Mesh::loadFromFile(const std::string& fileName) {
     }
     mVertices.push_back(v);
   }
-
+  // See if the mesh uses a diffuse texture
   if (mesh->mMaterialIndex > 0) {
     aiMaterial* material = scenePtr->mMaterials[mesh->mMaterialIndex];
-    addTexture(material);
+    addDiffuseTexture(material);
   }
-
+  // Update our bb
   updateBoundingBox();
   return true;
 }
 
-bool Mesh::loadVerticesAndIndices(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, bool normals, bool textCoords) {
-
+bool Mesh::loadVerticesAndIndices(const std::vector<Vertex>& vertices, 
+    const std::vector<unsigned int>& indices, bool normals, bool textCoords) {
+  // Blindlly trust the supplied parameters
   if (vertices.empty()) {
     return false;
   } else {
@@ -332,7 +328,7 @@ void Mesh::updateBoundingBox() {
 
 }
 
-void Mesh::addTexture(const aiMaterial* mat) {
+void Mesh::addDiffuseTexture(const aiMaterial* mat) {
   
   if (!mat) {
     return;

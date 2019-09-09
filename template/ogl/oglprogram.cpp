@@ -16,54 +16,52 @@ OGLProgram::OGLProgram(string vertex_shader_file_name, string fragment_shader_fi
   if (m_vertex_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open vertex shader file at: " << vertex_shader_file_name << endl;
   }
-
   m_fragment_shader_source = read_shader_from_file(fragment_shader_file_name);
   if (m_fragment_shader_source.empty() || !m_program_ok) {
-    cerr << "Could not open vertex shader file at: " << fragment_shader_file_name << endl;
+    cerr << "Could not open fragment shader file at: " << fragment_shader_file_name << endl;
   }
-  /* try to compile them */
+  /* Send the shader source to GPU and keep the locations */
   m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &m_vertex_shader_source[0];
   glShaderSource(m_vertex_shader, 1, &start, nullptr);
-
   m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &m_fragment_shader_source[0];
   glShaderSource(m_fragment_shader, 1, &start, nullptr);
-
+  // Try to compile the shaders
   try {
     int status;
+    //Vertex shader compilation
     glCompileShader(m_vertex_shader);
     glGetShaderiv(m_vertex_shader, GL_COMPILE_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_vertex_shader;
     }
-
+    //Fragment shader compilation
     glCompileShader(m_fragment_shader);
     glGetShaderiv(m_fragment_shader, GL_COMPILE_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_fragment_shader;
     }
   } catch (GLuint bad_shader) {
+    // Some shader was not compiled print error log
     printShaderInfoLog(bad_shader);
     m_program_ok = false;
   }
   // Shaders compile individually. Now, try to link an OpenGL program
-  m_program = glCreateProgram();
+  m_program = glCreateProgram(); // Ask for location
   try {
     int status;
+    // Attach shaders to program
     glAttachShader(m_program, m_vertex_shader);
     glAttachShader(m_program, m_fragment_shader);
     glLinkProgram(m_program);
-
+    // Try to link
     glGetProgramiv(m_program, GL_LINK_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_program;
     }
-
   } catch (GLuint bad_program) {
+    // The program was not linked print error log
     printProgramInfoLog(bad_program);
     m_program_ok = false;
   }
@@ -78,48 +76,42 @@ OGLProgram::OGLProgram(std::string vertex_shader_file_name, std::string fragment
   if (m_vertex_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open vertex shader file at: " << vertex_shader_file_name << endl;
   }
-
   m_fragment_shader_source = read_shader_from_file(fragment_shader_file_name);
   if (m_fragment_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open vertex shader file at: " << fragment_shader_file_name << endl;
   }
-
   m_geometry_shader_source = read_shader_from_file(geometry_shader_file_name);
   if (m_geometry_shader_source.empty() || !m_program_ok) {
     cerr << "Could not open geometry shader file at: " << geometry_shader_file_name << endl;
   }
-  /* try to compile them */
+  /* Send the shader source to GPU and keep the locations */
   m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &m_vertex_shader_source[0];
   glShaderSource(m_vertex_shader, 1, &start, nullptr);
-
   m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &m_fragment_shader_source[0];
   glShaderSource(m_fragment_shader, 1, &start, nullptr);
-
   m_geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
   start = &m_geometry_shader_source[0];
   glShaderSource(m_geometry_shader, 1, &start, nullptr);
-
+  // Try to compile the shaders
   try {
     int status;
+    //Vertex shader compilation
     glCompileShader(m_vertex_shader);
     glGetShaderiv(m_vertex_shader, GL_COMPILE_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_vertex_shader;
     }
-
+    //Fragment shader compilation
     glCompileShader(m_fragment_shader);
     glGetShaderiv(m_fragment_shader, GL_COMPILE_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_fragment_shader;
     }
-
+    //Geometry shader compilation
     glCompileShader(m_geometry_shader);
     glGetShaderiv(m_geometry_shader, GL_COMPILE_STATUS, &status);
-
     if (status == GL_FALSE) {
       m_has_geometry = false;
       throw m_geometry_shader;
@@ -127,6 +119,7 @@ OGLProgram::OGLProgram(std::string vertex_shader_file_name, std::string fragment
       m_has_geometry = true;
     }
   } catch (GLuint bad_shader) {
+     // The program was not linked print error log
     printShaderInfoLog(bad_shader);
     m_program_ok = false;
   }
@@ -134,18 +127,18 @@ OGLProgram::OGLProgram(std::string vertex_shader_file_name, std::string fragment
   m_program = glCreateProgram();
   try {
     int status;
+    // Attach shaders to program
     glAttachShader(m_program, m_vertex_shader);
     glAttachShader(m_program, m_fragment_shader);
     glAttachShader(m_program, m_geometry_shader);
     glLinkProgram(m_program);
-
+    // Try to link
     glGetProgramiv(m_program, GL_LINK_STATUS, &status);
-
     if (status == GL_FALSE) {
       throw m_program;
     }
-
   } catch (GLuint bad_program) {
+    // The program was not linked print error log
     printProgramInfoLog(bad_program);
     m_program_ok = false;
   }
@@ -203,23 +196,31 @@ bool OGLProgram::validate_shader_type(const GLenum& shadertype) {
 }
 
 string OGLProgram::read_shader_from_file(const string& shader_file_name) {
+  // Try to open the given file for read
   ifstream input_shader_file(shader_file_name, ios::in | ios::binary);
   string shader_source_code;
   if (input_shader_file) {
+    // Send the cursor to the end of the file
     input_shader_file.seekg(0, ios::end);
+    // Resize the string to fit the whole file content (Remember cursor is at the end)
     shader_source_code.resize(static_cast<unsigned int>(input_shader_file.tellg()));
+    // Put the cursor back to the begining of the file 
     input_shader_file.seekg(0, ios::beg);
+    // Read all the contents of the file until you fill the string (Remember string size 
+    // matches file size)
     input_shader_file.read(&shader_source_code[0], shader_source_code.size());
+    // Close file
     input_shader_file.close();
   } else {
+    // You could not open the file for read
     m_program_ok = false;
   }
-
+  // Return the content of the file as string
   return shader_source_code;
 }
 
 OGLProgram::OGLProgram() {
-
+  // Empthy constructor to prevent auto generation
 }
 
 } //namespacer ogl

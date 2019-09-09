@@ -4,13 +4,13 @@
 #include <glm/glm.hpp>
 
 namespace math {
-//! Helper function to certain math operations.
+//! Helper functions to certain math operations.
 /*!
     Since glm does almost evrything these are mostly wrappers and conversions
 */
-//! Angle conversion form degree to radians
+//! Angle conversion from degree to radians
 float toRadians(const float& degree);
-//! Angle conversion form radiasm to degree
+//! Angle conversion from radiasm to degree
 float toDegree(const float& radians);
 //! Color format conversion from a byte in [0, 255] to a normalized float in [0.0f, 1.0f]
 float toFCol(const unsigned char& c);

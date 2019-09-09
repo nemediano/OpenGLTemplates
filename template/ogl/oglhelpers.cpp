@@ -12,9 +12,9 @@ using namespace std;
 void printShaderInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-
+  // Query the dirver to see if there is an error log 
   glGetShaderiv(object, GL_INFO_LOG_LENGTH, &infologLength);
-
+  // If it is, then ask for it and print it to output stream
   if (infologLength > 0) {
     GLchar* infoLog = new char[infologLength];
     glGetShaderInfoLog(object, infologLength, &charsWritten, infoLog);
@@ -26,9 +26,9 @@ void printShaderInfoLog(GLuint object) {
 void printProgramInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-
+  // Query the dirver to see if there is an error log 
   glGetProgramiv(object, GL_INFO_LOG_LENGTH, &infologLength);
-
+  // If it is, then ask for it and print it to output stream
   if (infologLength > 0) {
     GLchar* infoLog = new char[infologLength];
     glGetProgramInfoLog(object, infologLength, &charsWritten, &infoLog[0]);
@@ -48,11 +48,12 @@ void APIENTRY opengl_error_callback(GLenum source,
   using std::endl;
   using std::string;
   using std::to_string;
-  // ignore non-significant error/warning codes
+  // Ignore non-significant error/warning codes
   if(id == 131169 || id == 131185 || id == 131218 || id == 131204) {
     return;
   }
   // Gather all the info in strings
+  // Source
   string source_str;
    switch (source) {
      case GL_DEBUG_SOURCE_API:             source_str = "API"; break;
@@ -62,7 +63,7 @@ void APIENTRY opengl_error_callback(GLenum source,
      case GL_DEBUG_SOURCE_APPLICATION:     source_str = "Application"; break;
      case GL_DEBUG_SOURCE_OTHER:           source_str = "Other"; break;
    }
-
+  // Type
   string type_str;
   switch (type) {
     case GL_DEBUG_TYPE_ERROR:               type_str = "Error"; break;
@@ -75,7 +76,7 @@ void APIENTRY opengl_error_callback(GLenum source,
     case GL_DEBUG_TYPE_POP_GROUP:           type_str = "Pop Group"; break;
     case GL_DEBUG_TYPE_OTHER:               type_str = "Other"; break;
   }
-
+  // Severity
   string severity_str;
   switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:         severity_str = "high"; break;
@@ -83,12 +84,12 @@ void APIENTRY opengl_error_callback(GLenum source,
     case GL_DEBUG_SEVERITY_LOW:          severity_str = "low"; break;
     case GL_DEBUG_SEVERITY_NOTIFICATION: severity_str = "notification"; break;
   }
-  // format message
+  // format the message
   string msg = string("OpenGL error (") + to_string(id) + string("): ") + message + string("\n") +
                string("Source: ") + source_str + string("\n") +
                string("Type: ") + type_str + string("\n") +
                string("Severity: ") + severity_str + string("\n");
-  // print error to console
+  // print the error to console
   cout << msg << endl;
 }
 
@@ -111,19 +112,19 @@ std::string enviroment_info() {
   std::stringstream info;
 
   info << "Hardware: " << endl;
-  info << "\tVendor: " << glGetString(GL_VENDOR) << endl;
-  info << "\tRenderer: " << glGetString(GL_RENDERER) << endl;
+  info << "  Vendor: " << glGetString(GL_VENDOR) << endl;
+  info << "  Renderer: " << glGetString(GL_RENDERER) << endl;
   info << "Software: " << endl;
-  info << "\tDriver:" << endl;
-  info << "\t\tOpenGL version: " << glGetString(GL_VERSION) << endl;
-  info << "\t\tGLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
-  info << "\tLibraries:" << endl;
-  info << "\t\tGLEW version: " << glewGetString(GLEW_VERSION) << endl;
-  info << "\t\tGLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
+  info << "  Driver:" << endl;
+  info << "  OpenGL version: " << glGetString(GL_VERSION) << endl;
+  info << "  GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+  info << "  Libraries:" << endl;
+  info << "    GLEW version: " << glewGetString(GLEW_VERSION) << endl;
+  info << "    GLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
        << "." << GLFW_VERSION_REVISION << endl;
-  info << "\t\tGLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
+  info << "    GLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
        << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
-  info << "\t\tDear Imgui version: " << ImGui::GetVersion();
+  info << "    Dear Imgui version: " << ImGui::GetVersion();
 
   return info.str();
 }

@@ -16,7 +16,7 @@ void ScreenGrabber::resize(int width, int height) {
   m_height = height;
 }
 /*
- Reset framenumber and updates clipnumber. These  method can be used by the client to "group"
+ Reset framenumber and updates clipnumber. This method can be used by the client to "group"
  several screenshootns in "clips". With the help of other programming tool it can be used to create
  recordings of the window.
 */

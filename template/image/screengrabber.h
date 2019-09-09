@@ -2,10 +2,11 @@
 #define SCREEN_GRABBER_H_
 
 namespace image {
-  //! An object that is able to save the current window content as an image file
+  //! An object that is able to save the current window content (framebuffer) as an image file
   /*!
     This class let you save the contents of the framebuffer of the current window and save it
-    an an image. To use it correctlly you need let him know evrytime the frambuffer changes size
+    as an image. To use it correctlly you need let the object know everytime the frambuffer
+    changes size
 
     An ScreenShoots directory needs to existe in the same folder as the executable. Otherwise the
     operation will be sillentlly ignored
@@ -24,8 +25,8 @@ public:
     If no filename is provided the internal logic uses two parameters to create the filename:
     <clipnumber>-<framenumber>.png. By default only framenumber gets increased. You can use
     next method to update the clipnumber
-    @param useFrontBuffer if true captures front buffer (default to false, i. e. use backbuffer)
-    @param filename of the image been saved.
+    @param useFrontBuffer if true captures front buffer (default to false, i. e. uses back buffer)
+    @param filename of the image to be saved.
   */
   void grab(bool useFrontBuffer = false, const char* fileName = nullptr);
   //! Let this object know that the screenbuffer has been resized

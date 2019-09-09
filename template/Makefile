@@ -8,7 +8,7 @@ SOURCES += imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp
 SOURCES += image/texture.cpp image/proceduraltextures.cpp image/screengrabber.cpp
 SOURCES += math/mathhelpers.cpp
 SOURCES += ogl/oglprogram.cpp ogl/oglhelpers.cpp
-SOURCES += mesh/mesh.cpp mesh/model.cpp
+SOURCES += mesh/mesh.cpp mesh/model.cpp mesh/proceduralmeshes.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 

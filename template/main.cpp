@@ -95,12 +95,13 @@ void init_glfw() {
   }
   // Library was initializated, now try window and context
   // This depends on the HW (GPU) and SW (Driver), use the best avialble
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   // This lines require OpenGL 4.3 or above, comment them if you dont have it
-  //glfwWindowHint(GLFW_SAMPLES, 4);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   common::window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!common::window) {
@@ -289,7 +290,7 @@ void render() {
     glActiveTexture(GL_TEXTURE1);
     textures[sep.specIndex]->bind();
     glUniform1i(u_SpecularMap_location, 1);
-    // Now draw this mesh indexes by using (by query) the separator 
+    // Now draw this mesh indexes by using (by query) the separator
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),
                              sep.startVertex);

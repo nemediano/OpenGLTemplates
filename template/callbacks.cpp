@@ -106,17 +106,17 @@ void change_window_mode() {
   GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
 
   if (monitor) { // Go to windowed mode
-    //glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
-    //    common::window_state.width, common::window_state.height, 0);
+    glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
+        common::window_state.width, common::window_state.height, 0);
   } else { // go to full screen
     // Store you current state
     glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
     glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
     common::window_state.monitorPtr = find_best_monitor(common::window);
     // Now go, to full-screnn mode
-    ///const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
-    //glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
-    //    mode->height, mode->refreshRate);
+    const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
+    glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
+        mode->height, mode->refreshRate);
   }
 }
 

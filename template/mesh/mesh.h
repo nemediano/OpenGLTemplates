@@ -8,6 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/normal.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <assimp/IOSystem.hpp>
@@ -120,7 +121,8 @@ public:
     Since the Vertex format is fixed they user needs to declare if the normals
     and texture corrdinates are present
   */
-  bool loadVerticesAndIndices(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, bool normals = false, bool textCoords = false);
+  bool loadVerticesAndIndices(const std::vector<Vertex>& vertices,
+      const std::vector<unsigned int>& indices, bool normals = false, bool textCoords = false);
   //! Clear and creates a new Mesh using a set of triangles
   /*!
     Recreates the object by providing data. Since the mesh is triangulated

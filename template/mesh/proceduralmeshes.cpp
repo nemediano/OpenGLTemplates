@@ -1,15 +1,16 @@
 #include "proceduralmeshes.h"
 
 namespace mesh {
+  // In this file we are going to use a lot of math, lets abreviate
   using glm::vec3;
   using glm::vec4;
   using glm::vec2;
   using glm::mat4;
   using glm::mat3;
   using namespace std;
-
-const float PI =  3.14159f;
-const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
+  // Usefull constants
+  const float PI =  3.14159f;
+  const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
 
 Mesh cube() {
   Mesh cube;
@@ -117,19 +118,19 @@ Mesh sphere(int slices, int stacks) {
   Mesh sphere;
   vector<unsigned int> indices;
   vector<Vertex> vertices;
-  //Polar angle is tropi goes in [0, TAU]
-  //Azimuth is a meridian goes in [0, PI]
-  float deltaPolar = TAU / slices;
-  float deltaAzimuth = PI / stacks;
-  //To keep the CCW orientation I will sweep polar form TAU to 0
+  // Polar angle is tropi goes in [0, TAU]
+  // Azimuth is a meridian goes in [0, PI]
+  const float deltaPolar = TAU / slices;
+  const float deltaAzimuth = PI / stacks;
+  // To keep the CCW orientation I will sweep polar from TAU to 0
   float polar = TAU;
   float azimuth = deltaAzimuth;
+  // Generate the vertices
   Vertex v;
-
   assert(stacks >= 2);
   assert(slices >= 3);
-  float s;
-  float deltaS = 1.0f / slices;
+  float s; // For one of the texture coordinates
+  const float deltaS = 1.0f / slices;
   for (int i = 0; i < (stacks - 1); ++i) {
     polar = 0.0f;
     s = 0.0f;
@@ -147,17 +148,15 @@ Mesh sphere(int slices, int stacks) {
       polar -= deltaPolar;
       s += deltaS;
     }
-    //Dummy vertex for the texture coordinates being able to close
+    //Dummy vertexes for the texture coordinates being able to close
     v.position = vertices[vertices.size() - slices].position;
     v.normal = vertices[vertices.size() - slices].normal;
     v.textCoords.s = s;
     v.textCoords.t = glm::clamp(1.0f - azimuth / PI, 0.0f, 1.0f);
-
     vertices.push_back(v);
     azimuth += deltaAzimuth;
   }
-
-  //Create triangles for the center part
+  //Create triangles for the center part (i.e: calculate the indices)
   for (int i = 0; i < (stacks - 2); ++i) {
     for (int j = 0; j < slices; ++j) {
       int a = i * (slices + 1) + j;
@@ -174,9 +173,10 @@ Mesh sphere(int slices, int stacks) {
       indices.push_back(d);
     }
   }
-  //To store where the middle vertices start of the lasr row
-  int indexLast = static_cast<int>(vertices.size() - slices - 1);
-
+  /**
+    Those were the central parts of the sphere. Now we need to close the shape by
+    generating the north and south poles caps
+  */
   //Create north triangle fan
   v.position = vec3(0.0f, 1.0f, 0.0f);
   v.normal = v.position;
@@ -193,7 +193,8 @@ Mesh sphere(int slices, int stacks) {
     indices.push_back(b);
     indices.push_back(c);
   }
-
+  // To store where the middle vertices started in the last row (we need to connect to these)
+  const int indexLast = static_cast<int>(vertices.size() - slices - 1);
   v.position = vec3(0.0f, -1.0f, 0.0f);
   v.normal = v.position;
   v.textCoords.t = 0.0f;
@@ -221,18 +222,16 @@ Mesh cylinder(int slices, int stacks, bool caps) {
   vector<unsigned int> indices;
   vector<Vertex> vertices;
 
-  float deltaHeight = 1.0f / stacks;
+  const float deltaHeight = 1.0f / stacks;
+  const float deltaAngle = TAU / slices;
   for (int i = 0; i <= stacks; ++i) {
     float angle = 0.0f;
-    float deltaAngle = TAU / slices;
     for (int j = 0; j < slices; ++j) {
       Vertex v;
       v.position.x = cos(angle);
       v.position.y = i * deltaHeight;
       v.position.z = sin(angle);
       v.normal = glm::normalize(vec3(v.position.x, 0.0f, v.position.z));
-      //v.textCoord.s = angle / TAU;
-      //v.textCoord.t = v.position.y;
       vertices.push_back(v);
       angle += deltaAngle;
       //Start to create the triangles from second iteration and so on
@@ -265,18 +264,18 @@ Mesh cylinder(int slices, int stacks, bool caps) {
       indices.push_back(d);
       indices.push_back(b);
     }
-
   }
-
-
+/**
+  Those were the central parts of the sphere. Now we need to close the shape by
+  generating the north and south poles circular caps
+*/
   if (caps) {
     int last_index = static_cast<int>(vertices.size());
     Vertex v;
     v.position = vec3(0.0f);
     v.normal = vec3(0.0f, -1.0f, 0.0f);
-    //v.textCoord = vec2(0.5f, 0.5f);
     vertices.push_back(v);
-    //Bottom cap
+    // Bottom cap
     float angle = 0.0f;
     float deltaAngle = TAU / slices;
     for (int i = 0; i < slices; i++) {
@@ -285,12 +284,10 @@ Mesh cylinder(int slices, int stacks, bool caps) {
       u.position.y = 0;
       u.position.z = sin(angle);
       u.normal = vec3(0.0f, -1.0f, 0.0f);
-      //u.textCoord.s = angle / TAU;
-      //u.textCoord.t = u.position.y;
       vertices.push_back(u);
       angle += deltaAngle;
     }
-    //Remember that index start at 0
+    // Remember that index start at 0
     for (int i = 1; i <= slices; i++) {
       indices.push_back(last_index);
       int tmp = i;
@@ -298,11 +295,10 @@ Mesh cylinder(int slices, int stacks, bool caps) {
       tmp = (i % slices) + 1;
       indices.push_back(last_index + tmp);
     }
-    //Top cap
+    // Top cap
     last_index = static_cast<int>(vertices.size());
     v.position = vec3(0.0f, 1.0f, 0.0);
     v.normal = vec3(0.0f, 1.0f, 0.0f);
-    //v.textCoord = vec2(0.5f, 0.5f);
     vertices.push_back(v);
     angle = 0.0f;
     for (int i = 0; i < slices; i++) {
@@ -311,8 +307,6 @@ Mesh cylinder(int slices, int stacks, bool caps) {
       u.position.y = 1.0f;
       u.position.z = sin(angle);
       u.normal = vec3(0.0f, 1.0f, 0.0f);
-      //u.textCoord.s = angle / TAU;
-      //u.textCoord.t = u.position.y;
       vertices.push_back(u);
       angle += deltaAngle;
     }
@@ -339,12 +333,11 @@ Mesh cylinderTexture(int slices, int stacks, bool caps) {
   assert(slices >= 3);
   assert(stacks >= 1);
 
+  const float deltaHeight = 1.0f / stacks;
+  const float deltaPolar = TAU / slices;
   Vertex v;
-
-  float deltaHeight = 1.0f / stacks;
   for (int i = 0; i <= stacks; ++i) {
     float polarAngle = 0.0f;
-    float deltaPolar = TAU / slices;
     for (int j = 0; j < slices; ++j) {
       v.position.x = cos(polarAngle);
       v.position.y = i * deltaHeight;
@@ -362,10 +355,8 @@ Mesh cylinderTexture(int slices, int stacks, bool caps) {
     v.textCoords.t = v.position.y;
     vertices.push_back(v);
   }
-
   //To store where the middle vertices start of the last row
   int indexLast = static_cast<int>(vertices.size() - slices - 1);
-
   //Create triangles for the center part
   for (int i = 0; i < stacks; ++i) {
     for (int j = 0; j < slices; ++j) {
@@ -383,10 +374,9 @@ Mesh cylinderTexture(int slices, int stacks, bool caps) {
       indices.push_back(d);
     }
   }
-
   //Create caps if needed
   if (caps) {
-    //Create down triangle fan
+    // Create down triangle fan
     v.position = vec3(0.0f, 0.0f, 0.0f);
     v.normal = vec3(0.0f, -1.0f, 0.0f);
     v.textCoords = vec2(0.5f, 0.5f);
@@ -411,7 +401,6 @@ Mesh cylinderTexture(int slices, int stacks, bool caps) {
       indices.push_back(static_cast<int>(vertices.size() - 1));
       indices.push_back(static_cast<int>(vertices.size() - 2));
     }
-
     //Create upper triangle fan
     v.position = vec3(0.0f, 1.0f, 0.0f);
     v.normal = v.position;
@@ -444,8 +433,10 @@ Mesh cylinderTexture(int slices, int stacks, bool caps) {
   return cylinder;
 }
 
-/*****************************************************************************************************************/
-
+/**************************************************************************************************/
+/* Functions related to the teapot mesh                                                           */
+/**************************************************************************************************/
+// Indices for the patch vertices for the teapot
 vector< vector<unsigned int> > patchIndices = {
   // rim
   { 102, 103, 104, 105, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
@@ -460,10 +451,10 @@ vector< vector<unsigned int> > patchIndices = {
   // spout
   { 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83 },{ 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95 }
 };
-
+// Shape constants
 const float LID = 1.0f;
 const float LID_Z = 1.0f;
-
+// Control points of the patches
 vector<vec3> curveData{
   { 0.2f*LID, 0.f*LID, 2.7f*LID_Z },{ 0.2f*LID, -0.112f*LID, 2.7f*LID_Z },{ 0.112f*LID, -0.2f*LID, 2.7f*LID_Z },{ 0.f*LID, -0.2f*LID, 2.7f*LID_Z },
   { 1.3375f, 0.f, 2.53125f },{ 1.3375f, -0.749f, 2.53125f },{ 0.749f, -1.3375f, 2.53125f },{ 0.f, -1.3375f, 2.53125f },
@@ -695,13 +686,14 @@ Mesh teapot(int subdivisions) {
 
   return teapot;
 }
+/**************************************************************************************************/
+/* End of functions related to the teapot creation                                                */
+/**************************************************************************************************/
 
-/*****************************************************************************************************************/
 Mesh torus(float outerRadius, float innerRadius, int rings, int sides) {
   Mesh torus;
   vector<unsigned int> indices;
   vector<Vertex> vertices;
-
   //Create a circular section
   float angle = 0.0f;
   float deltaAngle = TAU / sides;
@@ -712,12 +704,9 @@ Mesh torus(float outerRadius, float innerRadius, int rings, int sides) {
     v.position.y = innerRadius * sin(angle);
     v.position.z = 0.0f;
     v.normal = glm::normalize(v.position);
-    //v.textCoord.s = 0.0f;
-    //v.textCoord.t = static_cast<float>(i) / (sides - 1);
     angle += deltaAngle;
     circle.push_back(v);
   }
-
   //Transform the circle and insert it in vector
   angle = 0.0;
   deltaAngle = TAU / rings;
@@ -729,17 +718,15 @@ Mesh torus(float outerRadius, float innerRadius, int rings, int sides) {
     for (size_t j = 0; j < circle.size(); ++j) {
       transformedCircle[j].position = vec3(T * vec4(circle[j].position, 1.0f));
       transformedCircle[j].normal = vec3(glm::inverse(glm::transpose(T)) * vec4(circle[j].normal, 0.0f));
-      //transformedCircle[j].textCoord.s = static_cast<float>(j) / (rings - 1);
     }
     vertices.insert(vertices.end(), transformedCircle.begin(), transformedCircle.end());
     angle += deltaAngle;
   }
-
   //Create the triangles
   for (int i = 0; i < rings; ++i) {
     /*These are the literal vertex of the quadrialteral
       that I want to create using two triangles.
-      I could not came uo with a better naming convention */
+      I could not came up with a better naming convention */
     int a, b, c, d;
     for (int j = 0; j < sides; ++j) {
       a = i * sides + j;
@@ -768,7 +755,6 @@ Mesh torusTexture(float outerRadius, float innerRadius, int rings, int sides) {
   vector<Vertex> vertices;
 
   Vertex v;
-
   //Create a circular section
   float angle = 0.0f;
   float deltaAngle = TAU / sides;
@@ -786,13 +772,12 @@ Mesh torusTexture(float outerRadius, float innerRadius, int rings, int sides) {
     t += deltaT;
     circle.push_back(v);
   }
-  //One dumy vertex for the texture coordinates being able to close
+  //One dummy vertex for the texture coordinates being able to close
   v.position = circle[0].position;
   v.normal = circle[0].normal;
   v.textCoords.t = 1.0f;
   v.textCoords.s = 0.0f;
   circle.push_back(v);
-
   //Transform the circle and insert it in vector
   angle = 0.0;
   deltaAngle = TAU / rings;
@@ -820,12 +805,11 @@ Mesh torusTexture(float outerRadius, float innerRadius, int rings, int sides) {
     transformedCircle[j].textCoords.s = 1.0f;
   }
   vertices.insert(vertices.end(), transformedCircle.begin(), transformedCircle.end());
-
   //Create the triangles
   for (int i = 0; i < rings; ++i) {
     /*These are the literal vertex of the quadrialteral
     that I want to create using two triangles.
-    I could not came uo with a better naming convention */
+    I could not came up with a better naming convention */
     int a, b, c, d;
     for (int j = 0; j < sides; ++j) {
       a = i * (sides + 1) + j;
@@ -1048,7 +1032,7 @@ Mesh pyramid() {
   indices.push_back(11);
 
 
-  //Base two triangles face
+  //Base: square shape made of two triangles
   normal = glm::triangleNormal(positions[2], positions[3], positions[1]);
   vertices[12].position = positions[4];
   vertices[12].textCoords = textCoords[5];
@@ -1084,18 +1068,16 @@ Mesh cone(int slices, int stacks, bool cap) {
   vector<unsigned int> indices;
   vector<Vertex> vertices;
 
-  float deltaHeight = 1.0f / stacks;
+  const float deltaHeight = 1.0f / stacks;
+  const float deltaAngle = TAU / slices;
   for (int i = 0; i <= stacks; ++i) {
     float angle = 0.0f;
-    float deltaAngle = TAU / slices;
     for (int j = 0; j < slices; ++j) {
       Vertex v;
       v.position.x = (1.0f - i * deltaHeight) * cos(angle);
       v.position.y = i * deltaHeight;
       v.position.z = (1.0f - i * deltaHeight) * sin(angle);
       v.normal = glm::normalize(vec3(v.position.x, cos(TAU / 8.0f), v.position.z));
-      //v.textCoord.s = angle / TAU;
-      //v.textCoord.t = v.position.y;
       vertices.push_back(v);
       angle += deltaAngle;
       //Start to create the triangles from second iteration and so on
@@ -1113,7 +1095,6 @@ Mesh cone(int slices, int stacks, bool cap) {
           indices.push_back(d);
           indices.push_back(b);
         }
-
       }
     }
     //Last two
@@ -1130,28 +1111,25 @@ Mesh cone(int slices, int stacks, bool cap) {
       indices.push_back(d);
       indices.push_back(b);
     }
-
   }
-
-
+/**
+  That was the central parts of the cone. Now we need to close the shape by
+  generating the base circle
+*/
   if (cap) {
     int last_index = static_cast<int>(vertices.size());
     Vertex v;
     v.position = vec3(0.0f);
     v.normal = vec3(0.0f, -1.0f, 0.0f);
-    //v.textCoord = vec2(0.5f, 0.5f);
     vertices.push_back(v);
     //cap
     float angle = 0.0f;
-    float deltaAngle = TAU / slices;
     for (int i = 0; i < slices; i++) {
       Vertex u;
       u.position.x = cos(angle);
       u.position.y = 0;
       u.position.z = sin(angle);
       u.normal = vec3(0.0f, -1.0f, 0.0f);
-      //u.textCoord.s = angle / TAU;
-      //u.textCoord.t = u.position.y;
       vertices.push_back(u);
       angle += deltaAngle;
     }
@@ -1180,10 +1158,10 @@ Mesh coneTexture(int slices, int stacks, bool cap) {
 
   Vertex v;
 
-  float deltaHeight = 1.0f / stacks;
+  const float deltaHeight = 1.0f / stacks;
+  const float deltaPolar = TAU / slices;
   for (int i = 0; i < stacks; ++i) {
     float polarAngle = 0.0f;
-    float deltaPolar = TAU / slices;
     for (int j = 0; j < slices; ++j) {
       v.position.x = (1.0f - i * deltaHeight) * cos(polarAngle);
       v.position.y = i * deltaHeight;
@@ -1203,7 +1181,6 @@ Mesh coneTexture(int slices, int stacks, bool cap) {
   }
   //To store where the middle vertices start of the last row
   int indexLast = static_cast<int>(vertices.size() - slices - 1);
-
   //Create triangles for the center part
   for (int i = 0; i < (stacks - 1); ++i) {
     for (int j = 0; j < slices; ++j) {
@@ -1221,7 +1198,6 @@ Mesh coneTexture(int slices, int stacks, bool cap) {
       indices.push_back(d);
     }
   }
-
   //Top of the cone
   v.position = vec3(0.0f, 1.0f, 0.0f);
   v.textCoords.t = 1.0f;
@@ -1365,7 +1341,7 @@ Mesh icosphere(int subdiv) {
   //Spherical coordinates
   float phi = 0.0f; //Between [0, and Pi]
   float psy = 0.0f; //Between [0, and Tau]
-  float radio = 1.0f;
+  const float radio = 1.0f;
 
   //North pole
   initial_vertices[0] = radio * vec3(sin(phi) * cos(psy), sin(phi) * sin(psy), cos(phi));
@@ -1388,7 +1364,7 @@ Mesh icosphere(int subdiv) {
   initial_vertices[11] = radio * vec3(sin(phi) * cos(psy), sin(phi) * sin(psy), cos(phi));
 
   int subdiv_level = glm::abs(subdiv);
-
+  triangles.clear();
   //Generate the initial 20 faces
   /************************************************************************/
   /* Connect the north pole to the first strip, a triangle fan            */

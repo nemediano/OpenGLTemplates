@@ -8,6 +8,7 @@ SOURCES += imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp
 SOURCES += image/texture.cpp image/proceduraltextures.cpp image/screengrabber.cpp
 SOURCES += math/mathhelpers.cpp
 SOURCES += ogl/oglprogram.cpp ogl/oglhelpers.cpp
+SOURCES += light/materialphong.cpp
 SOURCES += mesh/mesh.cpp mesh/model.cpp mesh/proceduralmeshes.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
@@ -29,6 +30,9 @@ LIBS = -lGLEW -lGL -lglfw -lfreeimage -lassimp -lm
 	$(CXX) $(CXXFLAGS) -DIMGUI_IMPL_OPENGL_LOADER_GLEW -c -o $@ $< $(LIBS)
 
 %.o:image/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LIBS)
+
+%.o:light/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LIBS)
 
 %.o:math/%.cpp

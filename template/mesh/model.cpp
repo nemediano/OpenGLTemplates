@@ -42,7 +42,7 @@ std::vector<MeshData> Model::getSeparators() const {
   return mSeparators;
 }
 
-int Model::numMeshes() {
+int Model::numMeshes() const {
   //We have a separator at the begining and at the end
   return static_cast<int>(mSeparators.size() - 1);
 }
@@ -57,6 +57,31 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
   for(unsigned int i = 0; i < node->mNumChildren; i++) {
     processNode(node->mChildren[i], scene);
   }
+}
+
+void Model::addMesh(const Mesh& mesh) {
+  MeshData bookMark; // New bookmar to keep track of the new mesh
+  // keep the current number of indices (before adding this mesh)
+  unsigned int indicesBefore = static_cast<unsigned int>(mIndices.size());
+  // Insert new indices
+  std::vector<unsigned int> newIndices = mesh.getIndices();
+  mIndices.insert(mIndices.end(), newIndices.begin(), newIndices.end());
+  // Update the bookmark to reflect the new indices
+  unsigned int indicesAfter = static_cast<unsigned int>(mIndices.size());
+  bookMark.startIndex = int(indicesBefore);
+  bookMark.howMany = int(indicesAfter - indicesBefore);
+  // Prepare for the new vertices
+  bookMark.startVertex = int(mVertices.size());
+  // Insert new vertices
+  std::vector<Vertex> newVertices = mesh.getVertices();
+  mVertices.insert(mVertices.end(), newVertices.begin(), newVertices.end());
+  // Update our internal flags
+  mHasNormals = mHasNormals && mesh.hasNormals();
+  mHasTexture = mHasTexture && mesh.hasTexture();
+  // Finalize to update the bookmark
+  bookMark.diffuseIndex = -1;
+  bookMark.specIndex = -1;
+  mSeparators.push_back(bookMark);
 }
 
 void Model::addMeshData(const aiMesh* mesh, const aiScene* scene) {
@@ -143,21 +168,21 @@ int Model::addTexture(const aiMaterial* mat, aiTextureType ai_type) {
   text.filePath = textPath;
   mTexturesData.push_back(text);
   return static_cast<int>(mTexturesData.size() - 1);
-  
+
 }
 
 
 // Helper function to map between our texture types and those used by Assimp
 TextType Model::toTextType(aiTextureType ai_type) {
-  
+
   TextType type = OTHER;
-  
+
   switch (ai_type) {
-    
+
     case aiTextureType_DIFFUSE:
       type = DIFFUSE;
     break;
-    
+
     case aiTextureType_SPECULAR:
       type = SPECULAR;
     break;

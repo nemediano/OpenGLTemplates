@@ -46,4 +46,7 @@ float alpha = 0.0f;
 //! Keep track if we render or not the user menu
 bool show_menu = true;
 
+//! Show hide DearImgui demo (if you need to quick look how to use a control)
+bool show_demo_menu = false;
+
 } //namespace common

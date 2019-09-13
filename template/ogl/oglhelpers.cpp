@@ -12,7 +12,7 @@ using namespace std;
 void printShaderInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-  // Query the dirver to see if there is an error log 
+  // Query the dirver to see if there is an error log
   glGetShaderiv(object, GL_INFO_LOG_LENGTH, &infologLength);
   // If it is, then ask for it and print it to output stream
   if (infologLength > 0) {
@@ -26,7 +26,7 @@ void printShaderInfoLog(GLuint object) {
 void printProgramInfoLog(GLuint object) {
   int infologLength = 0;
   int charsWritten = 0;
-  // Query the dirver to see if there is an error log 
+  // Query the dirver to see if there is an error log
   glGetProgramiv(object, GL_INFO_LOG_LENGTH, &infologLength);
   // If it is, then ask for it and print it to output stream
   if (infologLength > 0) {
@@ -112,21 +112,63 @@ std::string enviroment_info() {
   std::stringstream info;
 
   info << "Hardware: " << endl;
-  info << "  Vendor: " << glGetString(GL_VENDOR) << endl;
-  info << "  Renderer: " << glGetString(GL_RENDERER) << endl;
+  info << "  Vendor: " << get_version(VENDOR) << endl;
+  info << "  Renderer: " << get_version(GPU) << endl;
   info << "Software: " << endl;
   info << "  Driver:" << endl;
-  info << "  OpenGL version: " << glGetString(GL_VERSION) << endl;
-  info << "  GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+  info << "  OpenGL version: " << get_version(OPENGL) << endl;
+  info << "  GLSL version: " << get_version(GLSL) << endl;
   info << "  Libraries:" << endl;
-  info << "    GLEW version: " << glewGetString(GLEW_VERSION) << endl;
-  info << "    GLFW version: " << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR
-       << "." << GLFW_VERSION_REVISION << endl;
-  info << "    GLM version: " << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100)
-       << "." << (GLM_VERSION % 100 / 10) << "." << (GLM_VERSION % 10) << endl;
-  info << "    Dear Imgui version: " << ImGui::GetVersion();
+  info << "    GLEW version: " << get_version(GLEW) << endl;
+  info << "    GLFW version: " << get_version(GLFW) << endl;
+  info << "    GLM version: " << get_version(GLM) << endl;
+  info << "    Dear Imgui version: " << get_version(IMGUI);
 
   return info.str();
+}
+
+std::string get_version(const VerEnum& field) {
+  std::stringstream ver;
+
+  switch (field) {
+    case VENDOR:
+      ver << glGetString(GL_VENDOR);
+    break;
+
+    case GPU:
+      ver << glGetString(GL_RENDERER);
+    break;
+
+    case OPENGL:
+      ver << glGetString(GL_VERSION);
+    break;
+
+    case GLSL:
+      ver << glGetString(GL_SHADING_LANGUAGE_VERSION);
+    break;
+
+    case GLEW:
+      ver << glewGetString(GLEW_VERSION);
+    break;
+
+    case GLFW:
+      ver << GLFW_VERSION_MAJOR << "." << GLFW_VERSION_MINOR << "." << GLFW_VERSION_REVISION;
+    break;
+
+    case GLM:
+      ver << (GLM_VERSION / 1000) << "." << (GLM_VERSION / 100) << "." << (GLM_VERSION % 100 / 10)
+          << "." << (GLM_VERSION % 10);
+    break;
+
+    case IMGUI:
+      ver << ImGui::GetVersion();
+    break;
+
+    default:
+      ver << "Unknow";
+  }
+
+  return ver.str();
 }
 
 bool framebufferStatus() {

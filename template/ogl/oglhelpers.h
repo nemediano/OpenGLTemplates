@@ -24,9 +24,9 @@ void printProgramInfoLog(GLuint object);
 
   In order to activate the debug logger the extension needs to be available and the context
   need to have made aware of this at creation (GLFW manages this logic) as a context creation hint
-  Also, Debug extension is only available in context version 4.3 and above 
+  Also, Debug extension is only available in context version 4.3 and above
 
-  If the debug logger is available, then a callback function is registered. This is the most 
+  If the debug logger is available, then a callback function is registered. This is the most
   powerfull (and complete) debug logger for OpenGL. However, keep in mind that depends on the
   driver. In other words: different drivers give different errors.
 
@@ -39,12 +39,18 @@ bool getErrorLog();
  the versions of all the third party libraries used in the template
 */
 std::string enviroment_info();
+//! Return a string that contains specific field info
+/*!
+ This method returns a strig with the version of a given field
+*/
+enum VerEnum {VENDOR, GPU, OPENGL, GLSL, GLEW, GLFW, GLM, IMGUI};
+std::string get_version(const VerEnum& field);
 //! Print the given shader error log to default output stream
 bool framebufferStatus();
 //! OpenGL debug error log callback function
 void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                             GLsizei length, const GLchar *message, const void *userParam);
-//! Print a glm matrix to the default output strem in human readable format 
+//! Print a glm matrix to the default output strem in human readable format
 void printMatrix(glm::mat4 A);
 //! Print a glm matrix to the default output strem in human readable format
 void printMatrix(glm::mat3 A);

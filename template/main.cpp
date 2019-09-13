@@ -66,6 +66,9 @@ int main (int argc, char* argv[]) {
   while (!glfwWindowShouldClose(common::window)) {
     if (common::show_menu) {
       create_menu();
+      if (common::show_demo_menu) {
+        ImGui::ShowDemoWindow();
+      }
       ImGui::Render(); // Prepare to render our menu, before clearing buffers (Before scene)
     }
     render();  // Render scene
@@ -128,7 +131,7 @@ void load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  // Save a string with the enviroment and context info (we display it in menu)
+  // Save a string with the enviroment and context info (we ignore it for now)
   common::context_info = ogl::enviroment_info();
   // If our context allow us, ask for a debug callback
   if (ogl::getErrorLog()) {

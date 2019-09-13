@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
 
 #include "callbacks.h"
 #include "common.h"
@@ -32,6 +33,8 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     common::sg.grab();
   } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
     common::show_menu = !common::show_menu;
+  } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    common::show_demo_menu = !common::show_demo_menu;
   }
 }
 
@@ -70,6 +73,11 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
 }
 
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.WantCaptureMouse) {
+    ImGui_ImplGlfw_ScrollCallback(windowPtr, x_offset, y_offset);
+    return;
+  }
   // If the user actiave the mouse wheel, change the zoom level
   common::zoom_level += int(y_offset);
   // zoom level is an integer between [-5, 5]

@@ -96,9 +96,16 @@ public:
   explicit Model(const std::string& fileName);
   //! Clears the current data. Then loads this 3D model from the fileName
   bool load(const std::string& fileName);
+  //! Add a mesh to this model
+  /*!
+    Add the data from the mesh (indices and vertices) to the internal
+    data structure model. It also updates the separator and the normals
+    and texture coordinates flags
+  */
+  void addMesh(const Mesh& mesh);
   //! Get a vector of MeshData that act as a separator of the meshes.
   /*!
-    Get a vector of MeshData, since all the model data is contained in a 
+    Get a vector of MeshData, since all the model data is contained in a
     single buffer. This vector act as a series of separators of each mesh.
     They provide all the data needed to render each mesh using
     glDrawElementsBaseVertex.
@@ -112,7 +119,7 @@ public:
   */
   std::vector<TextureImage> getDiffuseTextures() const;
   //! Get the number of meshes in this Model.
-  int numMeshes();
+  int numMeshes() const;
 };
 
 } // namespace mesh

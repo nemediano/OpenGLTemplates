@@ -17,8 +17,8 @@ void main(void) {
     vec3 h = normalize(l + v);
     //Material from texture
     vec3 Ka = 0.1 * texture2D(uDiffuseMap, fTextCoord).rgb;
-    vec3 Ks = 0.9 * texture2D(uDiffuseMap, fTextCoord).rgb;
-    vec3 Kd = texture2D(uSpecularMap, fTextCoord).rgb;
+    vec3 Kd = 0.9 * texture2D(uDiffuseMap, fTextCoord).rgb;
+    vec3 Ks = texture2D(uSpecularMap, fTextCoord).rgb;
     float alpha = uAlpha;
     //Light's color (all components are white)
     vec3 La = vec3(1.0);

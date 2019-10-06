@@ -32,7 +32,7 @@ void create_menu() {
     if (ImGui::Checkbox("Rotate", &common::rotating)) {
       common::current_angle = 0.0f; // So, besides setting variable we can execute code
     }
-    ImGui::SliderFloat("Alpha", &common::alpha, 0.0f, 16.0f, "%.1f", 2.0f);
+    ImGui::SliderFloat("Alpha", &common::alpha, 1.0f, 16.0f, "%.1f", 2.0f);
     if (ImGui::CollapsingHeader("Enviroment info:")) { // Submenu
       ImGui::Text("%s", "Hardware");
       ImGui::TextColored(ImVec4(0,0.5,1,1), "GPU:");

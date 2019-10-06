@@ -177,6 +177,9 @@ Mesh sphere(int slices, int stacks) {
     Those were the central parts of the sphere. Now we need to close the shape by
     generating the north and south poles caps
   */
+  // To store where the middle vertices started in the last row (we need to connect to these)
+  // in the south pole (but we need  to store it before creating any extra pole)
+  const int indexLast = static_cast<int>(vertices.size() - slices - 1);
   //Create north triangle fan
   v.position = vec3(0.0f, 1.0f, 0.0f);
   v.normal = v.position;
@@ -193,8 +196,7 @@ Mesh sphere(int slices, int stacks) {
     indices.push_back(b);
     indices.push_back(c);
   }
-  // To store where the middle vertices started in the last row (we need to connect to these)
-  const int indexLast = static_cast<int>(vertices.size() - slices - 1);
+
   v.position = vec3(0.0f, -1.0f, 0.0f);
   v.normal = v.position;
   v.textCoords.t = 0.0f;
@@ -1400,6 +1402,15 @@ Mesh icosphere(int subdiv) {
 
   //Get the vectors back to add normal and text coords
   triangles.clear();
+
+  std::vector<Vertex> vertices = sphere.getVertices();
+  std::vector<unsigned int> indices = sphere.getIndices();
+
+  for (size_t i = 0; i < vertices.size(); ++i) {
+    vertices[i].normal = vertices[i].position;
+  }
+
+  sphere.loadVerticesAndIndices(vertices, indices, true, false);
 
   return sphere;
 }

@@ -17,6 +17,7 @@ The template is composed of several files in their corresponding folders. Ideall
 * An user menu
 * Query for the version of the libraries and the OpenGL context.
 * An already made connection to the OpenGL debug logger extension.
+* Class to load/save meshes from file in several formats.
 
 ![template](../img/menuTemplate.png)
 
@@ -34,6 +35,8 @@ The template requires working installation of the following libraries
 * [Dear Imgui](https://github.com/ocornut/imgui) for creating the UI menus. (Does not require install, all files are provided).
 
 I tested in Ubuntu 14.04 and 18.04 by installing the libraries from the corresponding official repositories. In such scenarios the [Makefile](Makefile) works as it is. If you are in a different platform and/or environment, you should be able to deduct what you need to do just by seeing the makefile.
+
+I tested with a model from [here](http://www.cgtrader.com/free-3d-models/character/woman/nyra-game-model).
 
 I also tested with success in both: a very old machine with Mesa Drivers only capable of OpenGL 3.0,
 and in a very recent machine with latest Nvidia drivers (OpenGL 4.6).

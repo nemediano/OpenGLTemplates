@@ -11,6 +11,7 @@ out vec4 fragColor;
 void main(void) {
     //Since we are in view space
     vec3 v = vec3(0.0);
+    // This is a directional light
     vec3 l = normalize(vec3(0.0, 0.75, 1.0));
     vec3 n = normalize(fNormal);
     vec3 r = normalize(reflect(-l, n));

@@ -4,7 +4,7 @@ A minimal working example of a trackball camera in OpenGL.
 
 ![Camera](../img/camera.png)
 
-Note that the code is written in a way to prefer clarity in presentation over performance in the execution or good codding patterns.
+Note that the code is written in a way to prefer clarity in presentation over performance in the execution or good codding patterns. The implementation is based in the theory descibed in this [article](https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball)
 
 * All the camera related code is encapsulated in a class.
 * A single [main](main.cpp) file that shows how to use the class.

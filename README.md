@@ -17,5 +17,6 @@ The current templates are:
 * A minimal OpenGL [template](glutTriangle/) using: C++, GLEW, GLM and freeglut.
 * A minimal OpenGL [template](glfwTriangle/) using: C++, GLEW, GLM and glfw.
 * An OpenGL [template](imguiGlfw/) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and glfw.
+* An OpenGL [sample](trackballCamera/) of a trackball camera implementation using GLFW.
 * An OpenGL [template](imguiGlut/) with an user menu (using [Dear imgui](http://github.com/ocornut/imgui)) using: C++, GLEW, GLM and freeglut.
 * An intermediate OpenGL [template](template/) with all the previous features, plus a lot of extra helper clases for OpenGL.

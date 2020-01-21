@@ -31,7 +31,7 @@ GLuint program;
 // Global variables for the program logic
 int nTriangles;
 Trackball trackball;  //Trackball to change the camera rotation
-bool mouse_drag;      //To keep track the mouse drag for macera retation
+bool mouse_drag;      //To keep track the mouse drag for camera rotation
 int zoom_level;       //Zoom evel to complement the trackball camera
 // Manage the Vertex Buffer Objects using a Vertex Array Object
 GLuint vao;

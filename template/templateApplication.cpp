@@ -58,14 +58,14 @@ void TemplateApplication::init_program() {
   /************************************************************************/
   ogl_program_ptr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
   /* Now, that we have the program, query location of shader variables */
-  u_PVM_location = ogl_program_ptr->uniformLoc("PVM");
-  u_NormalMat_location = ogl_program_ptr->uniformLoc("NormalMat");
-  u_Alpha_location = ogl_program_ptr->uniformLoc("uAlpha");
-  u_DiffuseMap_location = ogl_program_ptr->uniformLoc("uDiffuseMap");
-  u_SpecularMap_location = ogl_program_ptr->uniformLoc("uSpecularMap");
-  a_position_loc = ogl_program_ptr->attribLoc("posAttr");
-  a_normal_loc = ogl_program_ptr->attribLoc("normalAttr");
-  a_textureCoord_loc = ogl_program_ptr->attribLoc("textCoordAttr");
+  mLoc.uPVM = ogl_program_ptr->uniformLoc("PVM");
+  mLoc.uNormalMat = ogl_program_ptr->uniformLoc("NormalMat");
+  mLoc.uAlpha = ogl_program_ptr->uniformLoc("uAlpha");
+  mLoc.uDiffuseMap = ogl_program_ptr->uniformLoc("uDiffuseMap");
+  mLoc.uSpecularMap = ogl_program_ptr->uniformLoc("uSpecularMap");
+  mLoc.aPosition = ogl_program_ptr->attribLoc("posAttr");
+  mLoc.aNormal = ogl_program_ptr->attribLoc("normalAttr");
+  mLoc.aTextureCoord = ogl_program_ptr->attribLoc("textCoordAttr");
   /* Then, create primitives and send data to GPU */
   load_model_data_and_send_to_gpu();
   // Initialize some basic rendering state
@@ -119,14 +119,14 @@ void TemplateApplication::load_model_data_and_send_to_gpu() {
   // Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-  glEnableVertexAttribArray(a_position_loc);
-  glVertexAttribPointer(a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(mLoc.aPosition);
+  glVertexAttribPointer(mLoc.aPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         OFFSET_OF(Vertex, position));
-  glEnableVertexAttribArray(a_normal_loc);
-  glVertexAttribPointer(a_normal_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(mLoc.aNormal);
+  glVertexAttribPointer(mLoc.aNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, normal));
-  glEnableVertexAttribArray(a_textureCoord_loc);
-  glVertexAttribPointer(a_textureCoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(mLoc.aTextureCoord);
+  glVertexAttribPointer(mLoc.aTextureCoord, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, textCoords));
   // Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -174,15 +174,15 @@ void TemplateApplication::render() {
   /************************************************************************/
   /* Send uniform values to shader                                        */
   /************************************************************************/
-  if (u_PVM_location != -1) {
-    glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
+  if (mLoc.uPVM != -1) {
+    glUniformMatrix4fv(mLoc.uPVM, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
-  if (u_NormalMat_location != -1) {
-    glUniformMatrix4fv(u_NormalMat_location, 1, GL_FALSE,
+  if (mLoc.uNormalMat != -1) {
+    glUniformMatrix4fv(mLoc.uNormalMat, 1, GL_FALSE,
         glm::value_ptr(glm::inverse(glm::transpose(V * M))));
   }
-  if (u_Alpha_location != -1) {
-    glUniform1f(u_Alpha_location, common::alpha);
+  if (mLoc.uAlpha != -1) {
+    glUniform1f(mLoc.uAlpha, common::alpha);
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
@@ -199,11 +199,11 @@ void TemplateApplication::render() {
     // Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
     textures[sep.diffuseIndex]->bind();
-    glUniform1i(u_DiffuseMap_location, 0);
+    glUniform1i(mLoc.uDiffuseMap, 0);
     // Send specular texture in unit 1
     glActiveTexture(GL_TEXTURE1);
     textures[sep.specIndex]->bind();
-    glUniform1i(u_SpecularMap_location, 1);
+    glUniform1i(mLoc.uSpecularMap, 1);
     // Now draw this mesh indexes by using (by query) the separator
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
                              reinterpret_cast<void*>(sep.startIndex * int(sizeof(unsigned int))),

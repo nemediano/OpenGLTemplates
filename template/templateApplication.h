@@ -28,22 +28,39 @@
 #include "common.h"
 #include "menu.h"
 
+struct ProgramLocations {
+  // Location for shader variables
+  GLint uPVM;
+  GLint uNormalMat;
+  GLint uDiffuseMap;
+  GLint uSpecularMap;
+  GLint uAlpha;
+  GLint aPosition;
+  GLint aNormal;
+  GLint aTextureCoord;
+  
+  ProgramLocations() {
+    reset();
+  }
 
+  void reset () {
+    uPVM = -1;
+    uNormalMat = -1;
+    uDiffuseMap = -1;
+    uSpecularMap = -1;
+    uAlpha = -1;
+    aPosition = -1;
+    aNormal = -1;
+    aTextureCoord = -1;
+  }
+};
 
 
 class TemplateApplication {
   public:
     void run();
   private:
-    // Location for shader variables
-    GLint u_PVM_location = -1;
-    GLint u_NormalMat_location = -1;
-    GLint u_DiffuseMap_location = -1;
-    GLint u_SpecularMap_location = -1;
-    GLint u_Alpha_location = -1;
-    GLint a_position_loc = -1;
-    GLint a_normal_loc = -1;
-    GLint a_textureCoord_loc = -1;
+    ProgramLocations mLoc;
     // OpenGL program handler
     ogl::OGLProgram* ogl_program_ptr = nullptr;
     // Two buffers to interact with the Model class

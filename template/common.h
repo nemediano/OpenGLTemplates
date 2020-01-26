@@ -28,6 +28,8 @@ public:
   int height;
 };
 
+extern bool ogl_debug_log;
+
 //! Object used to take screen-shoots
 extern image::ScreenGrabber sg;
 

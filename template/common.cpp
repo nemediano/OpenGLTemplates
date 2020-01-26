@@ -13,6 +13,8 @@
 
 namespace common {
 
+bool ogl_debug_log = false;
+
 //! Object used to take screen-shoots
 image::ScreenGrabber sg;
 

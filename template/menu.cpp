@@ -65,6 +65,7 @@ void create_menu() {
     if (ImGui::CollapsingHeader("Application stats")) {
       ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
       ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+      ImGui::Text("OpenGL's debug log is %s", common::ogl_debug_log ? "enabled" : "disabled");
     }
   ImGui::End();
 }

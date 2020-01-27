@@ -1,3 +1,6 @@
+#ifndef TEMPLATE_APP_H_
+#define TEMPLATE_APP_H_
+
 // ANSI C++ includes
 #include <cstdlib>
 #include <iostream>
@@ -26,7 +29,6 @@
 #include "ogl/oglprogram.h"
 #include "callbacks.h"
 #include "common.h"
-#include "menu.h"
 
 struct ProgramLocations {
   // Location for shader variables
@@ -77,4 +79,14 @@ class TemplateApplication {
     void render();
     void update();
     void free_resources();
+    //! Setup the IMGUI library to work with current OpenGL and GLFW, also general look and feel
+    void setup_menu();
+    //! Create the actual user menu of the application and connect the application with it.
+    /*!
+      Needs to be called every frame.
+      If you want to add/remove input controls, this is the place
+    */
+    void create_menu();
 };
+
+#endif

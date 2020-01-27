@@ -4,9 +4,10 @@
 
 #include "ogl/oglhelpers.h"
 #include "common.h"
-#include "menu.h"
 
-void setup_menu() {
+#include "templateApplication.h"
+
+void TemplateApplication::setup_menu() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -19,7 +20,7 @@ void setup_menu() {
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-void create_menu() {
+void TemplateApplication::create_menu() {
 
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();

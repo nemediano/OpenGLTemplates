@@ -3,10 +3,12 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 
+#include "templateApplication.h"
+
 #include "callbacks.h"
 #include "common.h"
 
-void register_glfw_callbacks() {
+void TemplateApplication::register_glfw_callbacks() {
   glfwSetWindowSizeCallback(common::window, resize_callback);
   glfwSetFramebufferSizeCallback(common::window, framebuffer_size_callback);
   glfwSetKeyCallback(common::window, key_callback);
@@ -26,7 +28,7 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     glfwSetWindowShouldClose(windowPtr, 1);
   } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
     common::rotating = !common::rotating;
-    common::current_angle = 0.0f;
+    //common::current_angle = 0.0f;
   } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
     change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {

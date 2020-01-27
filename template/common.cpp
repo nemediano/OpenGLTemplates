@@ -13,8 +13,6 @@
 
 namespace common {
 
-bool ogl_debug_log = false;
-
 //! Object used to take screen-shoots
 image::ScreenGrabber sg;
 
@@ -37,13 +35,7 @@ int zoom_level = 0;
 bool rotating = false;
 
 //! Keep track of the current angle (in degree)
-float current_angle = 0.0f;
-
-//! Contains the information about the current OpenGL context and the libraries version
-std::string context_info;
-
-//! Specular exponent (for the Blinn-Phong shading model)
-float alpha = 0.0f;
+//float current_angle = 0.0f;
 
 //! Keep track if we render or not the user menu
 bool show_menu = true;

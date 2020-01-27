@@ -21,7 +21,6 @@ void TemplateApplication::setup_menu() {
 }
 
 void TemplateApplication::create_menu() {
-
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
@@ -31,9 +30,10 @@ void TemplateApplication::create_menu() {
     ImGui::Text("Options"); //Simple text
     //Imgui's controls return true on interaction
     if (ImGui::Checkbox("Rotate", &common::rotating)) {
-      common::current_angle = 0.0f; // So, besides setting variable we can execute code
+      //common::current_angle = 0.0f; // So, besides setting variable we can execute code
+      mCurrentAngle = 0.0f; // So, besides setting variable we can execute code
     }
-    ImGui::SliderFloat("Alpha", &common::alpha, 1.0f, 16.0f, "%.1f", 2.0f);
+    ImGui::SliderFloat("Alpha", &mAlpha, 1.0f, 16.0f, "%.1f", 2.0f);
     if (ImGui::CollapsingHeader("Enviroment info:")) { // Submenu
       ImGui::Text("%s", "Hardware");
       ImGui::TextColored(ImVec4(0,0.5,1,1), "GPU:");
@@ -66,7 +66,7 @@ void TemplateApplication::create_menu() {
     if (ImGui::CollapsingHeader("Application stats")) {
       ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
       ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-      ImGui::Text("OpenGL's debug log is %s", common::ogl_debug_log ? "enabled" : "disabled");
+      ImGui::Text("OpenGL's debug log is %s", mHasDebug ? "enabled" : "disabled");
     }
   ImGui::End();
 }

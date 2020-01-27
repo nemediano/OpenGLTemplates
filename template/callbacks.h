@@ -1,15 +1,7 @@
 #ifndef CALLBACKS_H_
 #define CALLBACKS_H_
 
-#include <GLFW/glfw3.h>
-
 // GLFW related callbacks
-
-//! Register all the GLFW callbacks with the only window
-/*!
-  Uses the gloal window handler, to register all the functions with respective events
-*/
-void register_glfw_callbacks();
 //! Callback function for internal GLFW errors
 /*!
   If this function is executed an internal GLFW error was generated and the program will likely

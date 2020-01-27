@@ -46,10 +46,8 @@ void TemplateApplication::load_OpenGL() {
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
   }
-  // Save a string with the enviroment and context info (we ignore it for now)
-  common::context_info = ogl::enviroment_info();
   // If our context allow us, ask for a debug callback
-  common::ogl_debug_log = ogl::getErrorLog();
+  mHasDebug = ogl::getErrorLog();
 }
 
 void TemplateApplication::init_program() {
@@ -81,10 +79,11 @@ void TemplateApplication::init_program() {
   // Also, let the screen grabber know the current buffer size
   common::sg.resize(width, height);
   // Initial values for program logic
-  common::alpha = 4.0f;
+  mAlpha = 4.0f;
   common::show_menu = true;
   common::rotating = false;
   common::zoom_level = -1;
+  //mZoomLevel = -1;
 }
 
 void TemplateApplication::load_model_data_and_send_to_gpu() {
@@ -152,7 +151,8 @@ void TemplateApplication::render() {
   // Model
   glm::mat4 M = glm::scale(I, 2.0f * glm::vec3(1.0f));
   if (common::rotating) {
-    M = glm::rotate(M, glm::radians(common::current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+    //M = glm::rotate(M, glm::radians(common::current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+    M = glm::rotate(M, glm::radians(mCurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
   }
   // View
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -168,6 +168,7 @@ void TemplateApplication::render() {
   GLfloat aspect = float(width) / float(height);
   const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
   GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
+  //GLfloat fovy = TAU / 8.0f + mZoomLevel * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
   glm::mat4 P = glm::perspective(fovy, aspect, zNear, zFar);
@@ -182,7 +183,7 @@ void TemplateApplication::render() {
         glm::value_ptr(glm::inverse(glm::transpose(V * M))));
   }
   if (mLoc.uAlpha != -1) {
-    glUniform1f(mLoc.uAlpha, common::alpha);
+    glUniform1f(mLoc.uAlpha, mAlpha);
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
@@ -224,11 +225,15 @@ void TemplateApplication::update() {
   /* If rotating, then update angle*/
   if (common::rotating) {
     const float speed = 180.0f; // In degrees per second
-    common::current_angle += float(elapsed) * speed;
-    if (common::current_angle > 360.0f) {
-      int quotient = int(common::current_angle / 360.0f);
+    //common::current_angle += float(elapsed) * speed;
+    mCurrentAngle += float(elapsed) * speed;
+    //if (common::current_angle > 360.0f) {
+    if (mCurrentAngle > 360.0f) {
+      //int quotient = int(common::current_angle / 360.0f);
+      int quotient = int(mCurrentAngle / 360.0f);
       // Current angle is the float point modulo with 360.0f of previous current angle
-      common::current_angle -= quotient * 360.0f;
+      //common::current_angle -= quotient * 360.0f;
+      mCurrentAngle -= quotient * 360.0f;
     }
   }
 }

@@ -28,8 +28,6 @@ public:
   int height;
 };
 
-extern bool ogl_debug_log;
-
 //! Object used to take screen-shoots
 extern image::ScreenGrabber sg;
 
@@ -52,13 +50,7 @@ extern int zoom_level;
 extern bool rotating;
 
 //! Keep track of the current angle (in degree)
-extern float current_angle;
-
-//! Contains the information about the current OpenGL context and the libraries version
-extern std::string context_info;
-
-//! Specular exponent (for the Blinn-Phong shading model)
-extern float alpha;
+//extern float current_angle;
 
 //! Keep track if we render or not the user menu
 extern bool show_menu;

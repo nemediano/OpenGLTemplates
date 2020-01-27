@@ -62,6 +62,13 @@ class TemplateApplication {
   public:
     void run();
   private:
+    //! Keep track of the current angle (in degree)
+    float mCurrentAngle;
+    //! Specular exponent (for the Blinn-Phong shading model)
+    float mAlpha;
+    // See if we have a debug logger
+    bool mHasDebug;
+    // OGL shader porgram locations storage
     ProgramLocations mLoc;
     // OpenGL program handler
     ogl::OGLProgram* ogl_program_ptr = nullptr;
@@ -87,6 +94,12 @@ class TemplateApplication {
       If you want to add/remove input controls, this is the place
     */
     void create_menu();
+    // Related to callbacks
+    //! Register all the GLFW callbacks with the only window
+    /*!
+      Uses the gloal window handler, to register all the functions with respective events
+    */
+    void register_glfw_callbacks();
 };
 
 #endif

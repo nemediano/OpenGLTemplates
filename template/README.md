@@ -6,7 +6,12 @@ The template requires an intermediate level [OpenGL](http://www.opengl.org/) use
 
 ![template](../img/template.png)
 
-The template is composed of several files in their corresponding folders. Ideally, you will only need to change/adapt the files in the base directory: `main.cpp`, `commons.{h,cpp}`, `callbacks.{h,cpp}`.
+## Usage
+
+The template is composed of several files in their corresponding folders.
+All the independent classes are in their corresponding folders, ideally you can reuse them without modifications.
+
+The teamplate parts that you need to adapt to each specific project are in the base folder. Ideally, you will only need to change/adapt the application class. In other words you usually only need to make changes in `main.cpp`, `templateApplication.{h,cpp}`, `menu.cpp`, and `callbacks.{h,cpp}`.
 
 ## Features
 
@@ -17,13 +22,13 @@ The template is composed of several files in their corresponding folders. Ideall
 * An user menu
 * Query for the version of the libraries and the OpenGL context.
 * An already made connection to the OpenGL debug logger extension.
-* Class to load/save meshes from file in several formats.
+* Classes to load/save meshes and images from file in several formats.
 
 ![template](../img/menuTemplate.png)
 
 ![template](../img/full-screen.png)
 
-## Usage
+## Install
 
 The template requires working installation of the following libraries
 
@@ -34,7 +39,16 @@ The template requires working installation of the following libraries
 * [Assimp](http://www.assimp.org/) as 3D model read/write library.
 * [Dear Imgui](https://github.com/ocornut/imgui) for creating the UI menus. (Does not require install, all files are provided).
 
-I tested in Ubuntu 14.04 and 18.04 by installing the libraries from the corresponding official repositories. In such scenarios the [Makefile](Makefile) works as it is. If you are in a different platform and/or environment, you should be able to deduct what you need to do just by seeing the makefile.
+Before trying to use/compile the template it's a good idea to have your graphics driver up to date.
+
+I tested in Ubuntu 14.04 and 18.04 by installing the libraries from the corresponding official repositories.
+
+```
+sudo apt-get update
+sudo apt-get install libglew-dev libglfw3-dev libfreeimage-dev libglm-dev libfreeimage-dev libfreeimageplus-dev libassimp-dev build-essential
+```
+
+In such scenarios the [Makefile](Makefile) works as it is. If you are in a different platform and/or environment, you should be able to deduct what you need to do just by seeing the makefile.
 
 I tested with a model from [here](http://www.cgtrader.com/free-3d-models/character/woman/nyra-game-model).
 

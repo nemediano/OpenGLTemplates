@@ -18,18 +18,6 @@
 */
 namespace common {
 
-//! Keep track if we are in camera edit mode
-extern bool mouse_drag;
-
-//! The current zoom level of the camera
-extern int zoom_level;
-
-//! Keep track if we are in roataion mode
-extern bool rotating;
-
-//! Keep track if we render or not the user menu
-extern bool show_menu;
-
 //! Show hide DearImgui demo (if you need to quick look how to use a control)
 extern bool show_demo_menu;
 

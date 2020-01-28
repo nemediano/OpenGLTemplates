@@ -84,9 +84,17 @@ class TemplateApplication {
     image::ScreenGrabber mSg;
     //! Object used to controll the trackball camera's rotation
     ui::Trackball mBall;
-  private:
+    //! Keep track if we are in camera edit mode
+    bool mMouseDrag = false;
+    //! The current zoom level of the camera
+    int mZoomLevel = 0;
+    //! Keep track if we are in roatation mode
+    bool mRotating = false;
     //! Keep track of the current angle (in degree)
     float mCurrentAngle;
+    //! Keep track if we render or not the user menu
+    bool mShowMenu = true;
+  private:
     //! Specular exponent (for the Blinn-Phong shading model)
     float mAlpha;
     // See if we have a debug logger

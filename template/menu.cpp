@@ -29,7 +29,7 @@ void TemplateApplication::create_menu() {
   ImGui::Begin("Basic template menu"); //Name of the menu
     ImGui::Text("Options"); //Simple text
     //Imgui's controls return true on interaction
-    if (ImGui::Checkbox("Rotate", &common::rotating)) {
+    if (ImGui::Checkbox("Rotate", &mRotating)) {
       //common::current_angle = 0.0f; // So, besides setting variable we can execute code
       mCurrentAngle = 0.0f; // So, besides setting variable we can execute code
     }

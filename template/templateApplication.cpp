@@ -80,9 +80,9 @@ void TemplateApplication::init_program() {
   mSg.resize(width, height);
   // Initial values for program logic
   mAlpha = 4.0f;
-  common::show_menu = true;
-  common::rotating = false;
-  common::zoom_level = -1;
+  mShowMenu = true;
+  mRotating = false;
+  mZoomLevel = -1;
 }
 
 void TemplateApplication::load_model_data_and_send_to_gpu() {
@@ -149,8 +149,7 @@ void TemplateApplication::render() {
   glm::mat4 I(1.0f);
   // Model
   glm::mat4 M = glm::scale(I, 2.0f * glm::vec3(1.0f));
-  if (common::rotating) {
-    //M = glm::rotate(M, glm::radians(common::current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+  if (mRotating) {
     M = glm::rotate(M, glm::radians(mCurrentAngle), glm::vec3(0.0f, 1.0f, 0.0f));
   }
   // View
@@ -166,7 +165,7 @@ void TemplateApplication::render() {
   glfwGetWindowSize(mWinPtr, &width, &height);
   GLfloat aspect = float(width) / float(height);
   const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
-  GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
+  GLfloat fovy = TAU / 8.0f + mZoomLevel * (TAU / 50.0f);
   //GLfloat fovy = TAU / 8.0f + mZoomLevel * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
@@ -222,16 +221,14 @@ void TemplateApplication::update() {
   double elapsed = time - last_time; // elapsed is time in seconds between frames
   last_time = time;
   /* If rotating, then update angle*/
-  if (common::rotating) {
+  if (mRotating) {
     const float speed = 180.0f; // In degrees per second
-    //common::current_angle += float(elapsed) * speed;
     mCurrentAngle += float(elapsed) * speed;
     //if (common::current_angle > 360.0f) {
     if (mCurrentAngle > 360.0f) {
       //int quotient = int(common::current_angle / 360.0f);
       int quotient = int(mCurrentAngle / 360.0f);
       // Current angle is the float point modulo with 360.0f of previous current angle
-      //common::current_angle -= quotient * 360.0f;
       mCurrentAngle -= quotient * 360.0f;
     }
   }
@@ -261,7 +258,7 @@ void TemplateApplication::run() {
   register_glfw_callbacks();
   // Application's main loop
   while (!glfwWindowShouldClose(mWinPtr)) {
-    if (common::show_menu) {
+    if (mShowMenu) {
       create_menu();
       if (common::show_demo_menu) {
         ImGui::ShowDemoWindow();
@@ -270,7 +267,7 @@ void TemplateApplication::run() {
     }
     render();  // Render scene
     // Render the user menu (After scene)
-    if (common::show_menu) {
+    if (mShowMenu) {
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
     glfwSwapBuffers(mWinPtr);

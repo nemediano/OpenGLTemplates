@@ -34,14 +34,14 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, 1);
   } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-    common::rotating = !common::rotating;
-    //common::current_angle = 0.0f;
+    app->mRotating = !app->mRotating;
+    app->mCurrentAngle = 0.0f;
   } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
     app->change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
     app->mSg.grab();
   } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-    common::show_menu = !common::show_menu;
+    mShowMenu = !mShowMenu;
   } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
     common::show_demo_menu = !common::show_demo_menu;
   }
@@ -59,7 +59,7 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
   //The event happen outside the GUI, your application should try to handle it
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     // Start the mouse dragging event (edit camera mode)
-    common::mouse_drag = true;
+    app->mMouseDrag = true;
     double mouse_x;
     double mouse_y;
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
@@ -67,7 +67,7 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
     // Stops the mouse dragging (exit edit camera mode)
     app->mBall.endDrag();
-    common::mouse_drag = false;
+    app->mMouseDrag = false;
   }
 }
 
@@ -80,7 +80,7 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
   // Get reference to the main class instance
   TemplateApplication* app = 
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
-  if (common::mouse_drag) {
+  if (app->mMouseDrag) {
     // If we are editing the camera, let the trackball update too
     app->mBall.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
   }
@@ -96,9 +96,9 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
   TemplateApplication* app = 
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // If the user actiave the mouse wheel, change the zoom level
-  common::zoom_level += int(y_offset);
+  app->mZoomLevel += int(y_offset);
   // zoom level is an integer between [-5, 5]
-  common::zoom_level = glm::clamp(common::zoom_level, -5, 5);
+  app->mZoomLevel = glm::clamp(app->mZoomLevel, -5, 5);
 }
 
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {

@@ -58,9 +58,27 @@ struct ProgramLocations {
 };
 
 
+struct WindowState {
+  GLFWmonitor* monitorPtr;
+  int x_pos;
+  int y_pos;
+  int width;
+  int height;
+};
+
 class TemplateApplication {
   public:
     void run();
+    WindowState mWinState;
+    //! Main GLFW window and context handle
+    GLFWwindow* mWinPtr;
+    //! Switches between full-screen and windowed mode
+    /*!
+      Queries if the window is in windowed mode. If it is, then stores the current window state
+      and switches to full-screen mode. If it is not (hence we are full-screen) then reatrives
+      the previous window state (position and size) and returns to windowed mode
+    */
+    void change_window_mode();
   private:
     //! Keep track of the current angle (in degree)
     float mCurrentAngle;

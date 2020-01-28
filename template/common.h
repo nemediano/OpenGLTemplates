@@ -34,9 +34,6 @@ extern image::ScreenGrabber sg;
 //! To store the state of window (before goiong into full-screen) so it can return to it later
 extern WindowState window_state;
 
-//! Main GLFW window and context handle
-extern GLFWwindow* window;
-
 //! Object used to cotroll the trackball camera's rotation
 extern ui::Trackball ball;
 
@@ -48,9 +45,6 @@ extern int zoom_level;
 
 //! Keep track if we are in roataion mode
 extern bool rotating;
-
-//! Keep track of the current angle (in degree)
-//extern float current_angle;
 
 //! Keep track if we render or not the user menu
 extern bool show_menu;

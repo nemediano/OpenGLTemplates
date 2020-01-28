@@ -21,8 +21,8 @@ void TemplateApplication::init_glfw() {
   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  common::window = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
-  if (!common::window) {
+  mWinPtr = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
+  if (!mWinPtr) {
     // Window or context creation failed
     cerr << "OpenGL context not available" << endl;
     glfwTerminate();
@@ -31,7 +31,7 @@ void TemplateApplication::init_glfw() {
   // Save window state
   common::window_state.monitorPtr = glfwGetPrimaryMonitor();
   // Context setting needs to happen before OpenGL's extension loader
-  glfwMakeContextCurrent(common::window);
+  glfwMakeContextCurrent(mWinPtr);
   glfwSwapInterval(1);
 }
 
@@ -74,7 +74,7 @@ void TemplateApplication::init_program() {
   // Initialize trackball camera
   int width;
   int height;
-  glfwGetWindowSize(common::window, &width, &height);
+  glfwGetWindowSize(mWinPtr, &width, &height);
   common::ball.setWindowSize(width, height);
   // Also, let the screen grabber know the current buffer size
   common::sg.resize(width, height);
@@ -164,7 +164,7 @@ void TemplateApplication::render() {
   // Projection
   int width;
   int height;
-  glfwGetWindowSize(common::window, &width, &height);
+  glfwGetWindowSize(mWinPtr, &width, &height);
   GLfloat aspect = float(width) / float(height);
   const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
   GLfloat fovy = TAU / 8.0f + common::zoom_level * (TAU / 50.0f);
@@ -250,7 +250,7 @@ void TemplateApplication::free_resources() {
   /* Delete OpenGL program */
   delete ogl_program_ptr;
   // Window and context destruction
-  glfwDestroyWindow(common::window);
+  glfwDestroyWindow(mWinPtr);
 }
 
 void TemplateApplication::run() {
@@ -261,7 +261,7 @@ void TemplateApplication::run() {
   init_program();
   register_glfw_callbacks();
   // Application's main loop
-  while (!glfwWindowShouldClose(common::window)) {
+  while (!glfwWindowShouldClose(mWinPtr)) {
     if (common::show_menu) {
       create_menu();
       if (common::show_demo_menu) {
@@ -274,7 +274,7 @@ void TemplateApplication::run() {
     if (common::show_menu) {
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
-    glfwSwapBuffers(common::window);
+    glfwSwapBuffers(mWinPtr);
     update();
     glfwPollEvents();
   }

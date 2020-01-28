@@ -9,12 +9,16 @@
 #include "common.h"
 
 void TemplateApplication::register_glfw_callbacks() {
-  glfwSetWindowSizeCallback(common::window, resize_callback);
-  glfwSetFramebufferSizeCallback(common::window, framebuffer_size_callback);
-  glfwSetKeyCallback(common::window, key_callback);
-  glfwSetMouseButtonCallback(common::window, mouse_button_callback);
-  glfwSetCursorPosCallback(common::window, cursor_position_callback);
-  glfwSetScrollCallback(common::window, scroll_callback);
+  // Associate the class instance so, it can be acceses from
+  // inside the static callback functions
+  glfwSetWindowUserPointer(mWinPtr, static_cast<void*>(this));
+  // Register the callback functions
+  glfwSetWindowSizeCallback(mWinPtr, resize_callback);
+  glfwSetFramebufferSizeCallback(mWinPtr, framebuffer_size_callback);
+  glfwSetKeyCallback(mWinPtr, key_callback);
+  glfwSetMouseButtonCallback(mWinPtr, mouse_button_callback);
+  glfwSetCursorPosCallback(mWinPtr, cursor_position_callback);
+  glfwSetScrollCallback(mWinPtr, scroll_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
@@ -23,6 +27,9 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   if (io.WantCaptureKeyboard) {
     return;
   }
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));   
   //The event happen outside the GUI, your application should try to handle it
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, 1);
@@ -30,7 +37,7 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     common::rotating = !common::rotating;
     //common::current_angle = 0.0f;
   } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
-    change_window_mode();
+    app->change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
     common::sg.grab();
   } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
@@ -46,6 +53,9 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
   if (io.WantCaptureMouse) {
     return;
   }
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   //The event happen outside the GUI, your application should try to handle it
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
     // Start the mouse dragging event (edit camera mode)
@@ -67,7 +77,9 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
   if (io.WantCaptureMouse) {
     return;
   }
-
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   if (common::mouse_drag) {
     // If we are editing the camera, let the trackball update too
     common::ball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
@@ -80,6 +92,9 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
     ImGui_ImplGlfw_ScrollCallback(windowPtr, x_offset, y_offset);
     return;
   }
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // If the user actiave the mouse wheel, change the zoom level
   common::zoom_level += int(y_offset);
   // zoom level is an integer between [-5, 5]
@@ -89,11 +104,17 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   // Update OpenGl viewport
   glViewport(0, 0, new_window_width, new_window_height);
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // Update the trackball size
   common::ball.setWindowSize(new_window_width, new_window_height);
 }
 
 void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
+  // Get reference to the main class instance
+  TemplateApplication* app = 
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // Update the screengrabber resolution, I do this here an not in the resize
   // because the resolution could change without the window size changed
   // For example, if the window moves into a higer resolution display
@@ -111,21 +132,21 @@ void glfw_error_callback(int error, const char* description) {
   cerr << "GLFW Error (" << error << "): " << description << endl;
 }
 
-void change_window_mode() {
+void TemplateApplication::change_window_mode() {
   //Windowed windows return null as their monitor
-  GLFWmonitor* monitor = glfwGetWindowMonitor(common::window);
+  GLFWmonitor* monitor = glfwGetWindowMonitor(mWinPtr);
 
   if (monitor) { // Go to windowed mode
-    //glfwSetWindowMonitor(common::window, nullptr, common::window_state.x_pos, common::window_state.y_pos,
+    //glfwSetWindowMonitor(mWinPtr, nullptr, common::window_state.x_pos, common::window_state.y_pos,
      //   common::window_state.width, common::window_state.height, 0);
   } else { // go to full screen
     // Store you current state
-    glfwGetWindowPos(common::window, &common::window_state.x_pos, &common::window_state.y_pos);
-    glfwGetWindowSize(common::window, &common::window_state.width, &common::window_state.height);
-      common::window_state.monitorPtr = find_best_monitor(common::window);
+    glfwGetWindowPos(mWinPtr, &common::window_state.x_pos, &common::window_state.y_pos);
+    glfwGetWindowSize(mWinPtr, &common::window_state.width, &common::window_state.height);
+      common::window_state.monitorPtr = find_best_monitor(mWinPtr);
     // Now go, to full-screnn mode
     //const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
-    //glfwSetWindowMonitor(common::window, common::window_state.monitorPtr, 0, 0, mode->width,
+    //glfwSetWindowMonitor(mWinPtr, common::window_state.monitorPtr, 0, 0, mode->width,
     //    mode->height, mode->refreshRate);
   }
 }

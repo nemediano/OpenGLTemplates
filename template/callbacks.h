@@ -23,13 +23,6 @@ void cursor_position_callback(GLFWwindow* windowPtr, double xpos, double ypos);
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
 
 // Helper functions
-//! Switches between full-screen and windowed mode
-/*!
-  Queries if the window is in windowed mode. If it is, then stores the current window state
-  and switches to full-screen mode. If it is not (hence we are full-screen) then reatrives
-  the previous window state (position and size) and returns to windowed mode
-*/
-void change_window_mode();
 //! Determines which is the best monitor to go fullscreen
 /*!
   When the window is in windowed (normal) mode. Determines which monitor contains the

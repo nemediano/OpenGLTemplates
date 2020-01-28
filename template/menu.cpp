@@ -15,7 +15,7 @@ void TemplateApplication::setup_menu() {
   // Basic look and feel
   ImGui::StyleColorsDark();
   // Use standard connection with GLFW and modern OpenGL
-  ImGui_ImplGlfw_InitForOpenGL(common::window, true);
+  ImGui_ImplGlfw_InitForOpenGL(mWinPtr, true);
   const char* glsl_version{"#version 130"};
   ImGui_ImplOpenGL3_Init(glsl_version);
 }

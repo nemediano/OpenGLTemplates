@@ -69,6 +69,7 @@ struct WindowState {
 class TemplateApplication {
   public:
     void run();
+    //! To store the state of window (before goiong into full-screen) so it can return to it later
     WindowState mWinState;
     //! Main GLFW window and context handle
     GLFWwindow* mWinPtr;
@@ -79,6 +80,8 @@ class TemplateApplication {
       the previous window state (position and size) and returns to windowed mode
     */
     void change_window_mode();
+    //! Object used to take screen-shoots
+    image::ScreenGrabber mSg;
   private:
     //! Keep track of the current angle (in degree)
     float mCurrentAngle;

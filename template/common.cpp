@@ -16,9 +16,6 @@ namespace common {
 //! Object used to take screen-shoots
 image::ScreenGrabber sg;
 
-//! To store the state of window (before goiong into full-screen) so it can return to it later
-//WindowState window_state;
-
 //! Object used to cotroll the trackball camera's rotation
 ui::Trackball ball;
 

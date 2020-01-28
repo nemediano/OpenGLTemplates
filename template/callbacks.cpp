@@ -39,7 +39,7 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
     app->change_window_mode();
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-    common::sg.grab();
+    app->mSg.grab();
   } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
     common::show_menu = !common::show_menu;
   } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
@@ -119,7 +119,7 @@ void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
   // because the resolution could change without the window size changed
   // For example, if the window moves into a higer resolution display
   // The screen grabber needs to match the framebuffer (not the window size)
-  common::sg.resize(width, height);
+  app->mSg.resize(width, height);
 }
 
 void glfw_error_callback(int error, const char* description) {

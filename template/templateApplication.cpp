@@ -77,7 +77,7 @@ void TemplateApplication::init_program() {
   glfwGetWindowSize(mWinPtr, &width, &height);
   common::ball.setWindowSize(width, height);
   // Also, let the screen grabber know the current buffer size
-  common::sg.resize(width, height);
+  mSg.resize(width, height);
   // Initial values for program logic
   mAlpha = 4.0f;
   common::show_menu = true;

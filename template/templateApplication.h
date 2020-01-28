@@ -24,11 +24,12 @@
 // Includes from this template
 #include "image/texture.h"
 #include "image/proceduraltextures.h"
+#include "image/screengrabber.h"
 #include "mesh/model.h"
 #include "ogl/oglhelpers.h"
 #include "ogl/oglprogram.h"
+#include "ui/trackball.h"
 #include "callbacks.h"
-#include "common.h"
 
 struct ProgramLocations {
   // Location for shader variables
@@ -104,7 +105,7 @@ class TemplateApplication {
     // OGL shader porgram locations storage
     ProgramLocations mLoc;
     // OpenGL program handler
-    ogl::OGLProgram* ogl_program_ptr = nullptr;
+    ogl::OGLProgram* mGLProgramPtr = nullptr;
     // Two buffers to interact with the Model class
     std::vector<image::Texture*> textures;
     std::vector<mesh::MeshData> separators;

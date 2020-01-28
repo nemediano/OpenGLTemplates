@@ -6,7 +6,6 @@
 #include "templateApplication.h"
 
 #include "callbacks.h"
-#include "common.h"
 
 void TemplateApplication::register_glfw_callbacks() {
   // Associate the class instance so, it can be acceses from

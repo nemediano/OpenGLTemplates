@@ -54,16 +54,16 @@ void TemplateApplication::init_program() {
   /************************************************************************/
   /*                   OpenGL program (pipeline) creation                 */
   /************************************************************************/
-  ogl_program_ptr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
+  mGLProgramPtr = new ogl::OGLProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
   /* Now, that we have the program, query location of shader variables */
-  mLoc.uPVM = ogl_program_ptr->uniformLoc("PVM");
-  mLoc.uNormalMat = ogl_program_ptr->uniformLoc("NormalMat");
-  mLoc.uAlpha = ogl_program_ptr->uniformLoc("uAlpha");
-  mLoc.uDiffuseMap = ogl_program_ptr->uniformLoc("uDiffuseMap");
-  mLoc.uSpecularMap = ogl_program_ptr->uniformLoc("uSpecularMap");
-  mLoc.aPosition = ogl_program_ptr->attribLoc("posAttr");
-  mLoc.aNormal = ogl_program_ptr->attribLoc("normalAttr");
-  mLoc.aTextureCoord = ogl_program_ptr->attribLoc("textCoordAttr");
+  mLoc.uPVM = mGLProgramPtr->uniformLoc("PVM");
+  mLoc.uNormalMat = mGLProgramPtr->uniformLoc("NormalMat");
+  mLoc.uAlpha = mGLProgramPtr->uniformLoc("uAlpha");
+  mLoc.uDiffuseMap = mGLProgramPtr->uniformLoc("uDiffuseMap");
+  mLoc.uSpecularMap = mGLProgramPtr->uniformLoc("uSpecularMap");
+  mLoc.aPosition = mGLProgramPtr->attribLoc("posAttr");
+  mLoc.aNormal = mGLProgramPtr->attribLoc("normalAttr");
+  mLoc.aTextureCoord = mGLProgramPtr->attribLoc("textCoordAttr");
   /* Then, create primitives and send data to GPU */
   load_model_data_and_send_to_gpu();
   // Initialize some basic rendering state
@@ -141,7 +141,7 @@ void TemplateApplication::load_model_data_and_send_to_gpu() {
 
 void TemplateApplication::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  ogl_program_ptr->use();
+  mGLProgramPtr->use();
   /************************************************************************/
   /* Calculate  Model, View and Projection Matrices                       */
   /************************************************************************/
@@ -242,7 +242,7 @@ void TemplateApplication::free_resources() {
     delete textures[i];
   }
   /* Delete OpenGL program */
-  delete ogl_program_ptr;
+  delete mGLProgramPtr;
   // Window and context destruction
   glfwDestroyWindow(mWinPtr);
 }

@@ -129,6 +129,7 @@ void glfw_error_callback(int error, const char* description) {
   using std::endl;
   // Print the error to console as it is
   cerr << "GLFW Error (" << error << "): " << description << endl;
+  throw std::runtime_error("GLFW Error");
 }
 
 void TemplateApplication::change_window_mode() {

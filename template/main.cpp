@@ -1,12 +1,11 @@
 #include <iostream>
 #include <stdexcept>
-#include <functional>
 #include <cstdlib>
 
 #include "templateApplication.h"
 
 int main (int argc, char* argv[]) {
-  
+
   TemplateApplication app;
 
   try {
@@ -15,6 +14,6 @@ int main (int argc, char* argv[]) {
       std::cerr << e.what() << std::endl;
       return EXIT_FAILURE;
   }
-  
+
   return EXIT_SUCCESS;
 }

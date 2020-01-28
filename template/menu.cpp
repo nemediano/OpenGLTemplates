@@ -1,9 +1,6 @@
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
+// Includes from this template
 #include "ogl/oglhelpers.h"
-
+// Includes from this project
 #include "templateApplication.h"
 
 void TemplateApplication::setup_menu() {

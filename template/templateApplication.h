@@ -2,9 +2,6 @@
 #define TEMPLATE_APP_H_
 
 // ANSI C++ includes
-#include <cstdlib>
-#include <iostream>
-#include <string>
 #include <vector>
 // Third party libraries includes
 // Dear imgui
@@ -19,17 +16,15 @@
 #define GLM_FORCE_PURE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
 // Includes from this template
 #include "image/texture.h"
-#include "image/proceduraltextures.h"
 #include "image/screengrabber.h"
 #include "mesh/model.h"
-#include "ogl/oglhelpers.h"
+
 #include "ogl/oglprogram.h"
 #include "ui/trackball.h"
-#include "callbacks.h"
+
 
 struct ProgramLocations {
   // Location for shader variables

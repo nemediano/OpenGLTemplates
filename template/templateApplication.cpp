@@ -1,3 +1,17 @@
+//Standar libraries includes
+#include <iostream>
+#include <stdexcept>
+#include <string>
+// Third party libraries includes
+// GLM
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+//Includes from this template
+#include "ogl/oglhelpers.h"
+
+// Includes from this project
+#include "callbacks.h"
 #include "templateApplication.h"
 
 void TemplateApplication::init_glfw() {
@@ -9,7 +23,8 @@ void TemplateApplication::init_glfw() {
   if (!glfwInit()) {
     // Initialization failed
     cerr << "GLFW initialization failed!" << endl;
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+    throw std::runtime_error("GLFW initialization failed!");
   }
   // Library was initializated, now try window and context
   // This depends on the HW (GPU) and SW (Driver), use the best avialble
@@ -26,7 +41,7 @@ void TemplateApplication::init_glfw() {
     // Window or context creation failed
     cerr << "OpenGL context not available" << endl;
     glfwTerminate();
-    exit(EXIT_FAILURE);
+    throw std::runtime_error("OpenGL context not available");
   }
   // Save window state
   mWinState.monitorPtr = glfwGetPrimaryMonitor();
@@ -45,6 +60,7 @@ void TemplateApplication::load_OpenGL() {
   GLenum err = glewInit();
   if (GLEW_OK != err) {
     cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+    throw std::runtime_error("Glew initialization failed");
   }
   // If our context allow us, ask for a debug callback
   mHasDebug = ogl::getErrorLog();

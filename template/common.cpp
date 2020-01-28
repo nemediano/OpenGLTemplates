@@ -14,6 +14,6 @@
 namespace common {
 
 //! Show hide DearImgui demo (if you need to quick look how to use a control)
-bool show_demo_menu = false;
+//bool show_demo_menu = false;
 
 } //namespace common

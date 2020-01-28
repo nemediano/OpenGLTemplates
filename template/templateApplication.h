@@ -40,7 +40,7 @@ struct ProgramLocations {
   GLint aPosition;
   GLint aNormal;
   GLint aTextureCoord;
-  
+
   ProgramLocations() {
     reset();
   }
@@ -94,6 +94,8 @@ class TemplateApplication {
     float mCurrentAngle;
     //! Keep track if we render or not the user menu
     bool mShowMenu = true;
+    //! Show hide DearImgui demo (if you need to quick look how to use a control)
+    bool mShowDemoMenu = false;
   private:
     //! Specular exponent (for the Blinn-Phong shading model)
     float mAlpha;

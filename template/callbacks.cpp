@@ -28,8 +28,8 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
     return;
   }
   // Get reference to the main class instance
-  TemplateApplication* app = 
-      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));   
+  TemplateApplication* app =
+      static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   //The event happen outside the GUI, your application should try to handle it
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, 1);
@@ -41,9 +41,9 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
     app->mSg.grab();
   } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-    mShowMenu = !mShowMenu;
+    app->mShowMenu = !(app->mShowMenu);
   } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-    common::show_demo_menu = !common::show_demo_menu;
+    app->mShowDemoMenu = !(app->mShowDemoMenu);
   }
 }
 
@@ -54,7 +54,7 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
     return;
   }
   // Get reference to the main class instance
-  TemplateApplication* app = 
+  TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   //The event happen outside the GUI, your application should try to handle it
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -78,7 +78,7 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
     return;
   }
   // Get reference to the main class instance
-  TemplateApplication* app = 
+  TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   if (app->mMouseDrag) {
     // If we are editing the camera, let the trackball update too
@@ -93,7 +93,7 @@ void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
     return;
   }
   // Get reference to the main class instance
-  TemplateApplication* app = 
+  TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // If the user actiave the mouse wheel, change the zoom level
   app->mZoomLevel += int(y_offset);
@@ -105,7 +105,7 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
   // Update OpenGl viewport
   glViewport(0, 0, new_window_width, new_window_height);
   // Get reference to the main class instance
-  TemplateApplication* app = 
+  TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // Update the trackball size
   app->mBall.setWindowSize(new_window_width, new_window_height);
@@ -113,7 +113,7 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
 
 void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {
   // Get reference to the main class instance
-  TemplateApplication* app = 
+  TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // Update the screengrabber resolution, I do this here an not in the resize
   // because the resolution could change without the window size changed

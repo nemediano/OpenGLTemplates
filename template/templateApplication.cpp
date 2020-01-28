@@ -224,9 +224,7 @@ void TemplateApplication::update() {
   if (mRotating) {
     const float speed = 180.0f; // In degrees per second
     mCurrentAngle += float(elapsed) * speed;
-    //if (common::current_angle > 360.0f) {
     if (mCurrentAngle > 360.0f) {
-      //int quotient = int(common::current_angle / 360.0f);
       int quotient = int(mCurrentAngle / 360.0f);
       // Current angle is the float point modulo with 360.0f of previous current angle
       mCurrentAngle -= quotient * 360.0f;
@@ -260,7 +258,7 @@ void TemplateApplication::run() {
   while (!glfwWindowShouldClose(mWinPtr)) {
     if (mShowMenu) {
       create_menu();
-      if (common::show_demo_menu) {
+      if (mShowDemoMenu) {
         ImGui::ShowDemoWindow();
       }
       ImGui::Render(); // Prepare to render our menu, before clearing buffers (Before scene)

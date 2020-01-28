@@ -19,7 +19,7 @@
 namespace common {
 
 //! Show hide DearImgui demo (if you need to quick look how to use a control)
-extern bool show_demo_menu;
+//extern bool show_demo_menu;
 
 } //namsepace common
 

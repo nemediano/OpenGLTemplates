@@ -82,6 +82,8 @@ class TemplateApplication {
     void change_window_mode();
     //! Object used to take screen-shoots
     image::ScreenGrabber mSg;
+    //! Object used to controll the trackball camera's rotation
+    ui::Trackball mBall;
   private:
     //! Keep track of the current angle (in degree)
     float mCurrentAngle;

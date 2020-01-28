@@ -18,12 +18,6 @@
 */
 namespace common {
 
-//! Object used to take screen-shoots
-//extern image::ScreenGrabber sg;
-
-//! Object used to cotroll the trackball camera's rotation
-extern ui::Trackball ball;
-
 //! Keep track if we are in camera edit mode
 extern bool mouse_drag;
 

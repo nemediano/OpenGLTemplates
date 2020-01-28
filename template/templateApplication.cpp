@@ -75,7 +75,7 @@ void TemplateApplication::init_program() {
   int width;
   int height;
   glfwGetWindowSize(mWinPtr, &width, &height);
-  common::ball.setWindowSize(width, height);
+  mBall.setWindowSize(width, height);
   // Also, let the screen grabber know the current buffer size
   mSg.resize(width, height);
   // Initial values for program logic
@@ -83,7 +83,6 @@ void TemplateApplication::init_program() {
   common::show_menu = true;
   common::rotating = false;
   common::zoom_level = -1;
-  //mZoomLevel = -1;
 }
 
 void TemplateApplication::load_model_data_and_send_to_gpu() {
@@ -160,7 +159,7 @@ void TemplateApplication::render() {
   glm::vec3 camera_eye = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
   // Use trackball to get a rotation applied to the camera's initial pose
-  glm::mat4 V = Cam_Init_Pos * common::ball.getRotation();
+  glm::mat4 V = Cam_Init_Pos * mBall.getRotation();
   // Projection
   int width;
   int height;

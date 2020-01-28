@@ -63,10 +63,10 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
     double mouse_x;
     double mouse_y;
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
-    common::ball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
+    app->mBall.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
     // Stops the mouse dragging (exit edit camera mode)
-    common::ball.endDrag();
+    app->mBall.endDrag();
     common::mouse_drag = false;
   }
 }
@@ -82,7 +82,7 @@ void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mous
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   if (common::mouse_drag) {
     // If we are editing the camera, let the trackball update too
-    common::ball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
+    app->mBall.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
   }
 }
 
@@ -108,7 +108,7 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
   TemplateApplication* app = 
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   // Update the trackball size
-  common::ball.setWindowSize(new_window_width, new_window_height);
+  app->mBall.setWindowSize(new_window_width, new_window_height);
 }
 
 void framebuffer_size_callback(GLFWwindow* windowPtr, int width, int height) {

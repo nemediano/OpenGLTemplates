@@ -29,7 +29,7 @@ void TemplateApplication::init_glfw() {
     exit(EXIT_FAILURE);
   }
   // Save window state
-  common::window_state.monitorPtr = glfwGetPrimaryMonitor();
+  mWinState.monitorPtr = glfwGetPrimaryMonitor();
   // Context setting needs to happen before OpenGL's extension loader
   glfwMakeContextCurrent(mWinPtr);
   glfwSwapInterval(1);

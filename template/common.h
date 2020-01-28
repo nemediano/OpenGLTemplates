@@ -18,21 +18,11 @@
 */
 namespace common {
 
-//! Represents the state of a window in windowed mode
-class WindowState {
-public:
-  GLFWmonitor* monitorPtr;
-  int x_pos;
-  int y_pos;
-  int width;
-  int height;
-};
-
 //! Object used to take screen-shoots
 extern image::ScreenGrabber sg;
 
 //! To store the state of window (before goiong into full-screen) so it can return to it later
-extern WindowState window_state;
+//extern WindowState window_state;
 
 //! Object used to cotroll the trackball camera's rotation
 extern ui::Trackball ball;

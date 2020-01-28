@@ -137,16 +137,16 @@ void TemplateApplication::change_window_mode() {
   GLFWmonitor* monitor = glfwGetWindowMonitor(mWinPtr);
 
   if (monitor) { // Go to windowed mode
-    //glfwSetWindowMonitor(mWinPtr, nullptr, common::window_state.x_pos, common::window_state.y_pos,
-     //   common::window_state.width, common::window_state.height, 0);
+    //glfwSetWindowMonitor(mWinPtr, nullptr, mWinState.x_pos, mWinState.y_pos,
+     //   mWinState.width, mWinState.height, 0);
   } else { // go to full screen
     // Store you current state
-    glfwGetWindowPos(mWinPtr, &common::window_state.x_pos, &common::window_state.y_pos);
-    glfwGetWindowSize(mWinPtr, &common::window_state.width, &common::window_state.height);
-      common::window_state.monitorPtr = find_best_monitor(mWinPtr);
+    glfwGetWindowPos(mWinPtr, &mWinState.x_pos, &mWinState.y_pos);
+    glfwGetWindowSize(mWinPtr, &mWinState.width, &mWinState.height);
+    mWinState.monitorPtr = find_best_monitor(mWinPtr);
     // Now go, to full-screnn mode
-    //const GLFWvidmode* mode = glfwGetVideoMode(common::window_state.monitorPtr);
-    //glfwSetWindowMonitor(mWinPtr, common::window_state.monitorPtr, 0, 0, mode->width,
+    //const GLFWvidmode* mode = glfwGetVideoMode(mWinState.monitorPtr);
+    //glfwSetWindowMonitor(mWinPtr, mWinState.monitorPtr, 0, 0, mode->width,
     //    mode->height, mode->refreshRate);
   }
 }

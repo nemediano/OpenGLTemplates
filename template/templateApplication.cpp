@@ -13,13 +13,13 @@ void TemplateApplication::init_glfw() {
   }
   // Library was initializated, now try window and context
   // This depends on the HW (GPU) and SW (Driver), use the best avialble
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   // This lines require OpenGL 4.3 or above, comment them if you dont have it
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //glfwWindowHint(GLFW_SAMPLES, 4);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   mWinPtr = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!mWinPtr) {
@@ -97,23 +97,23 @@ void TemplateApplication::load_model_data_and_send_to_gpu() {
   std::vector<unsigned int> indices = model.getIndices();
   std::vector<Vertex> vertices = model.getVertices();
   // The separator will tell us how to render, since we destroy the model, we keep a copy
-  separators = model.getSeparators();
+  mSeparators = model.getSeparators();
   // Since we use the model to get the paths for the textures, I need
   // fill the textures collection here
   for (auto t : model.getDiffuseTextures()) {
     std::string texture_file = model_folder + t.filePath;
     image::Texture* texture = new image::Texture(texture_file);
     texture->send_to_gpu();
-    textures.push_back(texture);
+    mTextures.push_back(texture);
   }
   // Create the vertex buffer objects and VAO
   GLuint vbo;
   GLuint indexBuffer;
-  glGenVertexArrays(1, &vao);
+  glGenVertexArrays(1, &mVao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &indexBuffer);
   // Bind the vao this need to be done before anything
-  glBindVertexArray(vao);
+  glBindVertexArray(mVao);
   // Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
@@ -186,10 +186,10 @@ void TemplateApplication::render() {
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
-  glBindVertexArray(vao);
+  glBindVertexArray(mVao);
   /* Draw */
-  for (size_t i = 0; i < separators.size(); ++i) {
-    mesh::MeshData sep = separators[i];
+  for (size_t i = 0; i < mSeparators.size(); ++i) {
+    mesh::MeshData sep = mSeparators[i];
     if (sep.diffuseIndex == -1 || sep.specIndex == -1) {
       // This mesh is missing some texture
       // Do not render (Not with these shaders at least)
@@ -197,11 +197,11 @@ void TemplateApplication::render() {
     }
     // Send diffuse texture in unit 0
     glActiveTexture(GL_TEXTURE0);
-    textures[sep.diffuseIndex]->bind();
+    mTextures[sep.diffuseIndex]->bind();
     glUniform1i(mLoc.uDiffuseMap, 0);
     // Send specular texture in unit 1
     glActiveTexture(GL_TEXTURE1);
-    textures[sep.specIndex]->bind();
+    mTextures[sep.specIndex]->bind();
     glUniform1i(mLoc.uSpecularMap, 1);
     // Now draw this mesh indexes by using (by query) the separator
     glDrawElementsBaseVertex(GL_TRIANGLES, sep.howMany, GL_UNSIGNED_INT,
@@ -218,8 +218,8 @@ void TemplateApplication::render() {
 void TemplateApplication::update() {
   // We use GLFW (rather than OpenGL) to timer
   double time = glfwGetTime();
-  double elapsed = time - last_time; // elapsed is time in seconds between frames
-  last_time = time;
+  double elapsed = time - mLastTime; // elapsed is time in seconds between frames
+  mLastTime = time;
   /* If rotating, then update angle*/
   if (mRotating) {
     const float speed = 180.0f; // In degrees per second
@@ -238,8 +238,8 @@ void TemplateApplication::free_resources() {
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
   /* Delete texture pointers */
-  for (size_t i = 0; i < textures.size(); ++i) {
-    delete textures[i];
+  for (size_t i = 0; i < mTextures.size(); ++i) {
+    delete mTextures[i];
   }
   /* Delete OpenGL program */
   delete mGLProgramPtr;

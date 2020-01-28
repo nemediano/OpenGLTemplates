@@ -70,6 +70,9 @@ struct WindowState {
 class TemplateApplication {
   public:
     void run();
+    // All the things that need to be accees from the GLFW callbacks needs to be either public
+    // or have accesor/mutator methods. Since I prefer simplicity I made them public
+
     //! To store the state of window (before goiong into full-screen) so it can return to it later
     WindowState mWinState;
     //! Main GLFW window and context handle
@@ -107,12 +110,12 @@ class TemplateApplication {
     // OpenGL program handler
     ogl::OGLProgram* mGLProgramPtr = nullptr;
     // Two buffers to interact with the Model class
-    std::vector<image::Texture*> textures;
-    std::vector<mesh::MeshData> separators;
+    std::vector<image::Texture*> mTextures;
+    std::vector<mesh::MeshData> mSeparators;
     // To keep track the elapsed time between frames
-    double last_time = 0.0;
+    double mLastTime = 0.0;
     // Vertex Array Object used to manage the Vertex Buffer Objects
-    GLuint vao;
+    GLuint mVao;
     void init_glfw();
     void load_OpenGL();
     void init_program();

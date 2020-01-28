@@ -3,7 +3,6 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "ogl/oglhelpers.h"
-#include "common.h"
 
 #include "templateApplication.h"
 

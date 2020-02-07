@@ -13,7 +13,7 @@ SOURCES += mesh/mesh.cpp mesh/model.cpp mesh/proceduralmeshes.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
-CXXFLAGS += -Wall -std=c++11
+CXXFLAGS += -Wall -std=c++11 -O0 -ggdb3 -fno-omit-frame-pointer
 LIBS = -lGLEW -lGL -lglfw -lfreeimage -lassimp -lm
 
 ##---------------------------------------------------------------------

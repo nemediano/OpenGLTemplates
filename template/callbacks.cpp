@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -30,19 +31,29 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
   TemplateApplication* app =
       static_cast<TemplateApplication*>(glfwGetWindowUserPointer(windowPtr));
   //The event happen outside the GUI, your application should try to handle it
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(windowPtr, 1);
-  } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-    app->mRotating = !app->mRotating;
-    app->mCurrentAngle = 0.0f;
-  } else if (key == GLFW_KEY_F11 && action == GLFW_PRESS) {
-    app->change_window_mode();
-  } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-    app->mSg.grab();
-  } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
-    app->mShowMenu = !(app->mShowMenu);
-  } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-    app->mShowDemoMenu = !(app->mShowDemoMenu);
+  if (action == GLFW_PRESS) {
+    switch (key) {
+      case GLFW_KEY_ESCAPE:
+        glfwSetWindowShouldClose(windowPtr, 1);
+      break;
+      case GLFW_KEY_R: {
+        app->mRotating = !app->mRotating;
+        app->mCurrentAngle = 0.0f;
+      }
+      break;
+      case GLFW_KEY_F11:
+        app->change_window_mode();
+      break;
+      case GLFW_KEY_S:
+        app->mSg.grab();
+      break;
+      case GLFW_KEY_M:
+        app->mShowMenu = !(app->mShowMenu);
+      break;
+      case GLFW_KEY_D:
+        app->mShowDemoMenu = !(app->mShowDemoMenu);
+      break;
+    }
   }
 }
 
@@ -125,11 +136,11 @@ void glfw_error_callback(int error, const char* description) {
   /* If this function is executed an internal GLFW error was generated and the program will likely
   crash. The most common failure, is that the application tries to create an OpenGL context superior
   to the one actually supported by your SW (driver) and HW (GPU) */
-  using std::cerr;
-  using std::endl;
+  std::stringstream ss;
+  ss << "GLFW Error (" << error << "): " << description << std::endl;
   // Print the error to console as it is
-  cerr << "GLFW Error (" << error << "): " << description << endl;
-  throw std::runtime_error("GLFW Error");
+  std::cerr << ss.str();
+  //throw std::runtime_error(ss.str());
 }
 
 void TemplateApplication::change_window_mode() {

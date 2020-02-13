@@ -1,5 +1,6 @@
 //Standar libraries includes
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 // Third party libraries includes
@@ -23,23 +24,21 @@ void TemplateApplication::init_glfw() {
   if (!glfwInit()) {
     // Initialization failed
     cerr << "GLFW initialization failed!" << endl;
-    //exit(EXIT_FAILURE);
     throw std::runtime_error("GLFW initialization failed!");
   }
   // Library was initializated, now try window and context
   // This depends on the HW (GPU) and SW (Driver), use the best avialble
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   // This lines require OpenGL 4.3 or above, comment them if you dont have it
-  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  // glfwWindowHint(GLFW_SAMPLES, 4);
-  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   mWinPtr = glfwCreateWindow(900, 600, "OpenGL Template", nullptr, nullptr);
   if (!mWinPtr) {
     // Window or context creation failed
-    cerr << "OpenGL context not available" << endl;
     glfwTerminate();
     throw std::runtime_error("OpenGL context not available");
   }
@@ -51,16 +50,14 @@ void TemplateApplication::init_glfw() {
 }
 
 void TemplateApplication::load_OpenGL() {
-  using std::cout;
-  using std::cerr;
-  using std::endl;
   /************************************************************************/
   /*                    Init OpenGL context                               */
   /************************************************************************/
   GLenum err = glewInit();
   if (GLEW_OK != err) {
-    cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
-    throw std::runtime_error("Glew initialization failed");
+    std::stringstream ss;
+    ss << "Glew initialization failed: " << glewGetErrorString(err) << std::endl;
+    throw std::runtime_error(ss.str());
   }
   // If our context allow us, ask for a debug callback
   mHasDebug = ogl::getErrorLog();
@@ -97,6 +94,7 @@ void TemplateApplication::init_program() {
   // Initial values for program logic
   mAlpha = 4.0f;
   mShowMenu = true;
+  mShowDemoMenu = false;
   mRotating = false;
   mZoomLevel = -1;
 }
@@ -182,7 +180,6 @@ void TemplateApplication::render() {
   GLfloat aspect = float(width) / float(height);
   const float TAU = 6.28318f; // Math constant equal two PI (Remember, we are in radians)
   GLfloat fovy = TAU / 8.0f + mZoomLevel * (TAU / 50.0f);
-  //GLfloat fovy = TAU / 8.0f + mZoomLevel * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
   glm::mat4 P = glm::perspective(fovy, aspect, zNear, zFar);

@@ -86,15 +86,15 @@ class TemplateApplication {
     //! Keep track if we are in camera edit mode
     bool mMouseDrag = false;
     //! The current zoom level of the camera
-    int mZoomLevel = 0;
+    int mZoomLevel;
     //! Keep track if we are in roatation mode
-    bool mRotating = false;
+    bool mRotating;
     //! Keep track of the current angle (in degree)
     float mCurrentAngle;
     //! Keep track if we render or not the user menu
-    bool mShowMenu = true;
+    bool mShowMenu;
     //! Show hide DearImgui demo (if you need to quick look how to use a control)
-    bool mShowDemoMenu = false;
+    bool mShowDemoMenu;
   private:
     //! Specular exponent (for the Blinn-Phong shading model)
     float mAlpha;

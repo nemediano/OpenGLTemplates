@@ -58,6 +58,12 @@ void TemplateApplication::create_menu() {
       ImGui::TextColored(ImVec4(0,0.5,1,1), "GLEW:");
       ImGui::SameLine();
       ImGui::Text("%s", ogl::get_version(ogl::GLEW).c_str());
+      ImGui::TextColored(ImVec4(0,0.5,1,1), "Assimp:");
+      ImGui::SameLine();
+      ImGui::Text("%s", ogl::get_version(ogl::ASSIMP).c_str());
+      ImGui::TextColored(ImVec4(0,0.5,1,1), "FreeImage:");
+      ImGui::SameLine();
+      ImGui::Text("%s", ogl::get_version(ogl::FREEIMAGE).c_str());
     }
     if (ImGui::CollapsingHeader("Application stats")) {
       ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);

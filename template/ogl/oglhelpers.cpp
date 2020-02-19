@@ -1,5 +1,7 @@
 #include <iostream>
 #include <sstream>
+#include <assimp/version.h>
+#include <FreeImage.h>
 
 #include "../imgui/imgui.h"
 
@@ -122,8 +124,9 @@ std::string enviroment_info() {
   info << "    GLEW version: " << get_version(GLEW) << endl;
   info << "    GLFW version: " << get_version(GLFW) << endl;
   info << "    GLM version: " << get_version(GLM) << endl;
-  info << "    Dear Imgui version: " << get_version(IMGUI);
-
+  info << "    Dear Imgui version: " << get_version(IMGUI) << endl;
+  info << "    Assimp: " << get_version(ASSIMP) << endl;
+  info << "    FreeImage: " << get_version(FREEIMAGE);
   return info.str();
 }
 
@@ -162,6 +165,14 @@ std::string get_version(const VerEnum& field) {
 
     case IMGUI:
       ver << ImGui::GetVersion();
+    break;
+
+    case ASSIMP:
+      ver << aiGetVersionMajor() << "." << aiGetVersionMinor() << "." << aiGetVersionRevision();
+    break;
+    
+    case FREEIMAGE:
+      ver << FREEIMAGE_MAJOR_VERSION << "." << FREEIMAGE_MINOR_VERSION << "." << FREEIMAGE_RELEASE_SERIAL;
     break;
 
     default:

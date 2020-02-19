@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
 // OpenGL helper debug functions
 namespace ogl {
 //! Print the given shader error log to default output stream
@@ -43,7 +44,7 @@ std::string enviroment_info();
 /*!
  This method returns a strig with the version of a given field
 */
-enum VerEnum {VENDOR, GPU, OPENGL, GLSL, GLEW, GLFW, GLM, IMGUI};
+enum VerEnum {VENDOR, GPU, OPENGL, GLSL, GLEW, GLFW, GLM, IMGUI, ASSIMP, FREEIMAGE};
 std::string get_version(const VerEnum& field);
 //! Print the given shader error log to default output stream
 bool framebufferStatus();

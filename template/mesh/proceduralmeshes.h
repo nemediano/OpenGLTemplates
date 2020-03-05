@@ -8,8 +8,10 @@ namespace mesh {
 //! Plane mesh
 /*!
   Create a mesh that represent a plane with his corresponding normals and texture coordinates
+  @param sections Number of quads that create one side of the plane
+  @param twoSide If the plane duplicate the quads for the back side (making actually two glued planes)
 */
-Mesh plane();
+Mesh plane(int sections = 1, bool twoSide = false);
 //! Sphere discretized from an icosahedral base
 /*!
   Creates a mesh that represnts an sphere by recursive subdivision started from an icosahedron.

@@ -1524,40 +1524,102 @@ Mesh tethrahedra() {
   return teth;
 }
 
-Mesh plane() {
+Mesh plane(int sections, bool twoSide) {
 
-  Mesh plane;
+ assert(sections > 0);
 
-  Vertex v;
   vector<Vertex> vertices;
-  v.normal = vec3(0.0f, 0.0f, 1.0f);
-
-  v.position = vec3(-0.5f, 0.5f, 0.0f);
-  v.textCoords = vec2(0.0, 0.0);
-  vertices.push_back(v);
-
-  v.position = vec3(-0.5f, -0.5f, 0.0f);
-  v.textCoords = vec2(0.0, 1.0);
-  vertices.push_back(v);
-
-  v.position = vec3(0.5f, -0.5f, 0.0f);
-  v.textCoords = vec2(1.0, 1.0);
-  vertices.push_back(v);
-
-  v.position = vec3(0.5f, 0.5f, 0.0f);
-  v.textCoords = vec2(1.0, 0.0);
-  vertices.push_back(v);
-
   vector<unsigned int> indices;
 
-  indices.push_back(0);
-  indices.push_back(1);
-  indices.push_back(3);
+  vec3 currentPos = vec3(-0.5f, -0.5f, 0.0f);
+  unsigned int currentIndex = 0u;
+  const float DELTA_POS = 1.0f / float(sections);
 
-  indices.push_back(1);
-  indices.push_back(2);
-  indices.push_back(3);
+  Vertex v;
+  v.position = currentPos;
+  v.normal = vec3(0.0f, 0.0f, 1.0f);
+  
+  // for all quad section in plane
+  for (size_t i = 0; i < static_cast<size_t>(sections); ++i) {  
+    for (size_t j = 0; j < static_cast<size_t>(sections); ++j) {
+      //First vertex of this quad
+      v.position = currentPos;
+      v.textCoords = vec2(0.0, 0.0);
+      vertices.push_back(v);
+      //Second vertex of this quad
+      v.position = currentPos + vec3(DELTA_POS, 0.0f, 0.0f);
+      v.textCoords = vec2(1.0, 0.0);
+      vertices.push_back(v);
+      //third vertex of this quad
+      v.position = currentPos + vec3(DELTA_POS, DELTA_POS, 0.0f);
+      v.textCoords = vec2(1.0, 1.0);
+      vertices.push_back(v);
+      //fourth vertex of this quad
+      v.position = currentPos + vec3(0.0f, DELTA_POS, 0.0f);
+      v.textCoords = vec2(0.0, 1.0);
+      vertices.push_back(v);
+      // We have a quad insert indices
+      // First triangle
+      indices.push_back(currentIndex);
+      indices.push_back(currentIndex + 1);
+      indices.push_back(currentIndex + 2);
+      // second triangle
+      indices.push_back(currentIndex);
+      indices.push_back(currentIndex + 2);
+      indices.push_back(currentIndex + 3);
+      // we finish quad, update for next quad
+      currentPos += vec3(DELTA_POS, 0.0f, 0.0f);
+      currentIndex += 4u;
+    }
+    // We start a new row of quads
+    currentPos.y += DELTA_POS;
+    currentPos.x = -0.5f;
+  }
+  //Repeat the previos procedure, 
+  //but inverting the normal and the indexes winding order
+  if (twoSide) {
+    vec3 currentPos = vec3(-0.5f, -0.5f, 0.0f);
+    v.position = currentPos;
+    v.normal = vec3(0.0f, 0.0f, -1.0f);
+    // for all quad section in plane
+    for (size_t i = 0; i < static_cast<size_t>(sections); ++i) {  
+      for (size_t j = 0; j < static_cast<size_t>(sections); ++j) {
+        //First vertex of this quad
+        v.position = currentPos;
+        v.textCoords = vec2(0.0, 0.0);
+        vertices.push_back(v);
+        //Second vertex of this quad
+        v.position = currentPos + vec3(DELTA_POS, 0.0f, 0.0f);
+        v.textCoords = vec2(1.0, 0.0);
+        vertices.push_back(v);
+        //third vertex of this quad
+        v.position = currentPos + vec3(DELTA_POS, DELTA_POS, 0.0f);
+        v.textCoords = vec2(1.0, 1.0);
+        vertices.push_back(v);
+        //fourth vertex of this quad
+        v.position = currentPos + vec3(0.0f, DELTA_POS, 0.0f);
+        v.textCoords = vec2(0.0, 1.0);
+        vertices.push_back(v);
+        // We have a quad insert indices
+        // First triangle
+        indices.push_back(currentIndex);
+        indices.push_back(currentIndex + 2);
+        indices.push_back(currentIndex + 1);
+        // second triangle
+        indices.push_back(currentIndex);
+        indices.push_back(currentIndex + 3);
+        indices.push_back(currentIndex + 2);
+        // we finish quad, update for next quad
+        currentPos += vec3(DELTA_POS, 0.0f, 0.0f);
+        currentIndex += 4u;
+      }
+      // We start a new row of quads
+      currentPos.y += DELTA_POS;
+      currentPos.x = -0.5f;
+    }
+  }
 
+  Mesh plane;  
   plane.loadVerticesAndIndices(vertices, indices, true, true);
 
   return plane;

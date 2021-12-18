@@ -58,8 +58,8 @@ private:
 
   bool m_program_ok;
   bool m_has_geometry;
-//! Private constructor to prevent autogeneration, cannot create an object like this
-  OGLProgram();
+//! Delete empty constructor to prevent auto generation, cannot create an object like this
+  OGLProgram() = delete;
 
   GLuint m_vertex_shader;
   GLuint m_fragment_shader;

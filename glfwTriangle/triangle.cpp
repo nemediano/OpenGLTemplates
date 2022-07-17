@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -13,64 +14,83 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// I have compiled in Ubuntu 18.04, usign standar installation of glfw, glew and GLM
+// I have tested in Ubuntu 20.04, using standard installation of glfw, glew and GLM
 // i.e installed from official repos
 // g++ -std=c++11 -Wall triangle.cpp -o triangle -lGLEW -lGL -lglfw -lm
 
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 #define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
-// Window and context handle
-GLFWwindow* window = nullptr;
-// Location for shader variables
-GLint u_PVM_location = -1;
-GLint a_position_loc = -1;
-GLint a_color_loc = -1;
-// OpenGL program handlers
-GLuint vertex_shader;
-GLuint fragment_shader;
-GLuint program;
-// Global variables for the program logic
-int nTriangles;
-// Manage the Vertex Buffer Objects using a Vertex Array Object
-GLuint vao;
-// Function declarations
-void init_glfw();
-void load_OpenGL();
-void init_program();
-void create_primitives_and_send_to_gpu();
-void render();
-void free_resources();
-// GLFW related callbacks
-void register_glfw_callbacks();
+
 void glfw_error_callback(int error, const char* description);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void resize_callback(GLFWwindow* window, int new_window_width, int new_window_height);
 // OpenGL's debug logger callback (needs context 4.3 or above)
 void APIENTRY opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                             GLsizei length, const GLchar *message, const void *userParam);
-// Print shader compilation errors
-void print_shader_log(GLint const shader);
-// get infor form the used libraries versions
-std::string enviroment_info();
+
+class OpenGLApplication {
+public:
+	OpenGLApplication() {};
+	void run();
+private:
+	// Window and context handle
+	GLFWwindow* m_Window = nullptr;
+	// Location for shader variables
+	GLint m_u_PVM_location = -1;
+	GLint m_a_position_loc = -1;
+	GLint m_a_color_loc = -1;
+	// OpenGL program handlers
+	GLuint m_vertex_shader = 0;
+	GLuint m_fragment_shader = 0;
+	GLuint m_program = 0;
+	// Global variables for the program logic
+	int m_nTriangles = 0;
+	// Manage the Vertex Buffer Objects using a Vertex Array Object
+	GLuint m_vao = 0;
+	// Function declarations
+	void init_glfw();
+	void load_OpenGL();
+	void init_program();
+	void create_primitives_and_send_to_gpu();
+	void render();
+	void free_resources();
+	// Print shader compilation errors
+	void print_shader_log(GLint const shader);
+	// get info form the used libraries versions
+	std::string enviroment_info();
+	// Callback related
+	void register_glfw_callbacks();
+};
 
 int main (int argc, char* argv[]) {
-  init_glfw();
-  load_OpenGL();
-  init_program();
-  register_glfw_callbacks();
+  OpenGLApplication app;
 
-  while (!glfwWindowShouldClose(window)) {
-    render();
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+  try {
+	  app.run();
+  } catch (const std::exception& e) {
+      std::cerr << e.what() << std::endl;
+      return EXIT_FAILURE;
   }
-  free_resources();
 
   return EXIT_SUCCESS;
 }
 
-void init_glfw() {
+void OpenGLApplication::run() {
+	init_glfw();
+	load_OpenGL();
+	init_program();
+	register_glfw_callbacks();
+
+	while (!glfwWindowShouldClose(m_Window)) {
+		render();
+		glfwSwapBuffers(m_Window);
+		glfwPollEvents();
+	}
+	free_resources();
+}
+
+void OpenGLApplication::init_glfw() {
   using std::cerr;
   using std::endl;
   // Set error log for GLFW
@@ -78,8 +98,9 @@ void init_glfw() {
   // Try to init libary
   if (!glfwInit()) {
     // Initialization failed
-    cerr << "GLFW initialization failed!" << endl;
-    exit(EXIT_FAILURE);
+	std::stringstream ss;
+    ss << "GLFW initialization failed!" << endl;
+    throw std::runtime_error(ss.str());
   }
   // Library was initializated, now try window and context
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -88,19 +109,20 @@ void init_glfw() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-  window = glfwCreateWindow(512, 512, "Hello world OpenGL - glfw", nullptr, nullptr);
-  if (!window) {
+  m_Window = glfwCreateWindow(512, 512, "Hello world OpenGL - glfw", nullptr, nullptr);
+  if (!m_Window) {
     // Window or context creation failed
-    cerr << "OpenGL context not available" << endl;
+	std::stringstream ss;
+    ss << "OpenGL context not available" << endl;
     glfwTerminate();
-    exit(EXIT_FAILURE);
+    throw std::runtime_error(ss.str());
   }
   // Context setting to happen before OpenGL's extension loader
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(m_Window);
   glfwSwapInterval(1);
 }
 
-void load_OpenGL() {
+void OpenGLApplication::load_OpenGL() {
   using std::cout;
   using std::cerr;
   using std::endl;
@@ -109,7 +131,9 @@ void load_OpenGL() {
   /************************************************************************/
   GLenum err = glewInit();
   if (GLEW_OK != err) {
-    cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+	std::stringstream ss;
+    ss << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+    throw std::runtime_error(ss.str());
   }
   cout << enviroment_info() << endl;
   /************************************************************************/
@@ -128,7 +152,7 @@ void load_OpenGL() {
   }
 }
 
-void init_program() {
+void OpenGLApplication::init_program() {
   /************************************************************************/
   /*                   OpenGL program (pipeline) creation                 */
   /************************************************************************/
@@ -165,40 +189,40 @@ void init_program() {
     }
   )GLSL";
 
-  vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &vertex_shader_src[0];
-  glShaderSource(vertex_shader, 1, &start, nullptr);
+  glShaderSource(m_vertex_shader, 1, &start, nullptr);
 
-  fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &fragment_shader_src[0];
-  glShaderSource(fragment_shader, 1, &start, nullptr);
+  glShaderSource(m_fragment_shader, 1, &start, nullptr);
 
   int status{0};
-  glCompileShader(vertex_shader);
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
+  glCompileShader(m_vertex_shader);
+  glGetShaderiv(m_vertex_shader, GL_COMPILE_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "Vertex shader was not compiled!!" << endl;
-    print_shader_log(vertex_shader);
+    print_shader_log(m_vertex_shader);
   }
-  glCompileShader(fragment_shader);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &status);
+  glCompileShader(m_fragment_shader);
+  glGetShaderiv(m_fragment_shader, GL_COMPILE_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "Fragment shader was not compiled!!" << endl;
-    print_shader_log(fragment_shader);
+    print_shader_log(m_fragment_shader);
   }
-  program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
+  m_program = glCreateProgram();
+  glAttachShader(m_program, m_vertex_shader);
+  glAttachShader(m_program, m_fragment_shader);
   //glBindFragDataLocation(program, 0, "fragcolor");
-  glLinkProgram(program);
-  glGetProgramiv(program, GL_LINK_STATUS, &status);
+  glLinkProgram(m_program);
+  glGetProgramiv(m_program, GL_LINK_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "OpenGL program was not linked!!" << endl;
   }
   /* Now, that we have the program, query location of shader variables */
-  u_PVM_location = glGetUniformLocation(program, "PVM");
-  a_position_loc = glGetAttribLocation(program, "Position");
-  a_color_loc = glGetAttribLocation(program, "Color");
+  m_u_PVM_location = glGetUniformLocation(m_program, "PVM");
+  m_a_position_loc = glGetAttribLocation(m_program, "Position");
+  m_a_color_loc = glGetAttribLocation(m_program, "Color");
 
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
@@ -208,7 +232,7 @@ void init_program() {
   glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
 }
 
-void create_primitives_and_send_to_gpu() {
+void OpenGLApplication::create_primitives_and_send_to_gpu() {
   //Create primitives
   struct Vertex {
     glm::vec3 position;
@@ -225,24 +249,24 @@ void create_primitives_and_send_to_gpu() {
   indices.push_back(1);
   indices.push_back(2);
 
-  nTriangles = indices.size() / 3;
+  m_nTriangles = indices.size() / 3;
 
   //Create the vertex buffer objects and VAO
   GLuint vbo;
   GLuint indexBuffer;
-  glGenVertexArrays(1, &vao);
+  glGenVertexArrays(1, &m_vao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &indexBuffer);
   // Bind the vao this need to be done before anything
-  glBindVertexArray(vao);
+  glBindVertexArray(m_vao);
   //Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-  glEnableVertexAttribArray(a_position_loc);
-  glVertexAttribPointer(a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_position_loc);
+  glVertexAttribPointer(m_a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         OFFSET_OF(Vertex, position));
-  glEnableVertexAttribArray(a_color_loc);
-  glVertexAttribPointer(a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_color_loc);
+  glVertexAttribPointer(m_a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, color));
   //Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -257,9 +281,9 @@ void create_primitives_and_send_to_gpu() {
   indices.clear();
 }
 
-void render() {
+void OpenGLApplication::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(program);
+  glUseProgram(m_program);
   /************************************************************************/
   /* Calculate  Model View Projection Matrices                            */
   /************************************************************************/
@@ -277,7 +301,7 @@ void render() {
   //Projection
   int width;
   int height;
-  glfwGetWindowSize(window, &width, &height);
+  glfwGetWindowSize(m_Window, &width, &height);
   GLfloat aspect = float(width) / float(height);
   GLfloat fovy = TAU / 8.0f;
   GLfloat zNear = 1.0f;
@@ -286,28 +310,33 @@ void render() {
   /************************************************************************/
   /* Send uniform values to shader                                        */
   /************************************************************************/
-  if (u_PVM_location != -1) {
-    glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
+  if (m_u_PVM_location != -1) {
+    glUniformMatrix4fv(m_u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
-  glBindVertexArray(vao);
+  glBindVertexArray(m_vao);
   /* Draw */
   const int start_index = 0; //In location corresponding the index array
-  glDrawElements(GL_TRIANGLES, 3 * nTriangles, GL_UNSIGNED_SHORT,
+  glDrawElements(GL_TRIANGLES, 3 * m_nTriangles, GL_UNSIGNED_SHORT,
                  BUFFER_OFFSET(start_index * sizeof(unsigned short)));
   //Unbind and clean
   glBindVertexArray(0);
   glUseProgram(0);
 }
 
-void register_glfw_callbacks() {
-  glfwSetWindowSizeCallback(window, resize_callback);
-  glfwSetKeyCallback(window, key_callback);
+void OpenGLApplication::register_glfw_callbacks() {
+  // Associate the class instance so, it can be access from
+  // inside the static callback functions
+  glfwSetWindowUserPointer(m_Window, static_cast<void*>(this));
+  glfwSetWindowSizeCallback(m_Window, resize_callback);
+  glfwSetKeyCallback(m_Window, key_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
+  // Get reference to the main class instance
+  // auto* app = static_cast<OpenGLApplication*>(glfwGetWindowUserPointer(windowPtr));
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(windowPtr, GLFW_TRUE);
   }
@@ -320,18 +349,20 @@ void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window
 void glfw_error_callback(int error, const char* description) {
   using std::cerr;
   using std::endl;
-  cerr << "GLFW Error: " << description << endl;
+  std::stringstream ss;
+  ss << "GLFW Error: " << description << endl;
+  throw std::runtime_error(ss.str());
 }
 
-void free_resources() {
+void OpenGLApplication::free_resources() {
   /* Delete OpenGL program */
-  glDetachShader(program, vertex_shader);
-  glDetachShader(program, fragment_shader);
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-  glDeleteProgram(program);
+  glDetachShader(m_program, m_vertex_shader);
+  glDetachShader(m_program, m_fragment_shader);
+  glDeleteShader(m_vertex_shader);
+  glDeleteShader(m_fragment_shader);
+  glDeleteProgram(m_program);
   //Window and context destruction
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(m_Window);
 }
 
 void APIENTRY opengl_error_callback(GLenum source,
@@ -389,7 +420,7 @@ void APIENTRY opengl_error_callback(GLenum source,
   cout << msg << endl;
 }
 
-void print_shader_log(GLint const shader) {
+void OpenGLApplication::print_shader_log(GLint const shader) {
   using std::cerr;
   using std::endl;
 
@@ -407,7 +438,7 @@ void print_shader_log(GLint const shader) {
   }
 }
 
-std::string enviroment_info() {
+std::string OpenGLApplication::enviroment_info() {
   using std::endl;
   std::stringstream info;
 

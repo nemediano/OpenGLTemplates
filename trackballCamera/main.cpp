@@ -18,34 +18,8 @@
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 #define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
-// Window and context handle
-GLFWwindow* window = nullptr;
-// Location for shader variables
-GLint u_PVM_location = -1;
-GLint a_position_loc = -1;
-GLint a_color_loc = -1;
-// OpenGL program handlers
-GLuint vertex_shader;
-GLuint fragment_shader;
-GLuint program;
-// Global variables for the program logic
-int nTriangles;
-Trackball trackball;  //Trackball to change the camera rotation
-bool mouse_drag;      //To keep track the mouse drag for camera rotation
-int zoom_level;       //Zoom evel to complement the trackball camera
-// Manage the Vertex Buffer Objects using a Vertex Array Object
-GLuint vao;
-// See if this platform supports raw mouse motion
-bool raw_mouse_supported;
-// Function declarations
-void init_glfw();
-void load_OpenGL();
-void init_program();
-void create_primitives_and_send_to_gpu();
-void render();
-void free_resources();
+
 // GLFW related callbacks
-void register_glfw_callbacks();
 void glfw_error_callback(int error, const char* description);
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods);
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height);
@@ -53,23 +27,68 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
 void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mouse_y);
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset);
 
+class OpenGLApplication {
+public:
+	void run();
+	Trackball m_trackball;  //Trackball to change the camera rotation
+	bool m_mouse_drag;      //To keep track the mouse drag for camera rotation
+	int m_zoom_level;       //Zoom evel to complement the trackball camera
+private:
+	// Window and context handle
+	GLFWwindow* m_window = nullptr;
+	// Location for shader variables
+	GLint m_u_PVM_location = -1;
+	GLint m_a_position_loc = -1;
+	GLint m_a_color_loc = -1;
+	// OpenGL program handlers
+	GLuint m_vertex_shader;
+	GLuint m_fragment_shader;
+	GLuint m_program;
+	// Global variables for the program logic
+	int m_nTriangles;
+
+	// Manage the Vertex Buffer Objects using a Vertex Array Object
+	GLuint m_vao;
+	// See if this platform supports raw mouse motion
+	bool m_raw_mouse_supported;
+
+	void init_glfw();
+	void load_OpenGL();
+	void init_program();
+	void create_primitives_and_send_to_gpu();
+	void render();
+	void free_resources();
+	void register_glfw_callbacks();
+};
+
 int main (int argc, char* argv[]) {
+  OpenGLApplication app;
+
+  try {
+	  app.run();
+  } catch (const std::exception& e) {
+	  std::cerr << e.what() << std::endl;
+	  return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+void OpenGLApplication::run() {
   init_glfw();
   load_OpenGL();
   init_program();
   register_glfw_callbacks();
 
-  while (!glfwWindowShouldClose(window)) {
-    render();
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+  while (!glfwWindowShouldClose(m_window)) {
+	render();
+	glfwSwapBuffers(m_window);
+	glfwPollEvents();
   }
   free_resources();
-
-  return EXIT_SUCCESS;
 }
 
-void init_glfw() {
+void OpenGLApplication::init_glfw() {
   using std::cerr;
   using std::endl;
   // Set error log for GLFW
@@ -77,28 +96,30 @@ void init_glfw() {
   // Try to init libary
   if (!glfwInit()) {
     // Initialization failed
-    cerr << "GLFW initialization failed!" << endl;
-    exit(EXIT_FAILURE);
+	std::stringstream ss;
+	ss << "GLFW initialization failed!" << endl;
+	throw std::runtime_error(ss.str());
   }
   // Library was initializated, now try window and context
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  window = glfwCreateWindow(640, 480, "Simple trackball camera", nullptr, nullptr);
-  if (!window) {
+  m_window = glfwCreateWindow(640, 480, "Simple trackball camera", nullptr, nullptr);
+  if (!m_window) {
     // Window or context creation failed
-    cerr << "OpenGL context not available" << endl;
-    glfwTerminate();
-    exit(EXIT_FAILURE);
+	glfwTerminate();
+	std::stringstream ss;
+    ss << "OpenGL context not available" << endl;
+    throw std::runtime_error(ss.str());
   }
   // Query if this platform support raw mouse motion
-  raw_mouse_supported = glfwRawMouseMotionSupported();
+  m_raw_mouse_supported = glfwRawMouseMotionSupported();
   // Context setting to happen before OpenGL's extension loader
-  glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(m_window);
   glfwSwapInterval(1);
 }
 
-void load_OpenGL() {
+void OpenGLApplication::load_OpenGL() {
   using std::cout;
   using std::cerr;
   using std::endl;
@@ -107,11 +128,13 @@ void load_OpenGL() {
   /************************************************************************/
   GLenum err = glewInit();
   if (GLEW_OK != err) {
-    cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+	std::stringstream ss;
+    ss << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+    throw std::runtime_error(ss.str());
   }
 }
 
-void init_program() {
+void OpenGLApplication::init_program() {
   /************************************************************************/
   /*                   OpenGL program (pipeline) creation                 */
   /************************************************************************/
@@ -148,40 +171,41 @@ void init_program() {
     }
   )GLSL";
 
-  vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &vertex_shader_src[0];
-  glShaderSource(vertex_shader, 1, &start, nullptr);
+  glShaderSource(m_vertex_shader, 1, &start, nullptr);
+  glCompileShader(m_vertex_shader);
 
-  fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &fragment_shader_src[0];
-  glShaderSource(fragment_shader, 1, &start, nullptr);
+  glShaderSource(m_fragment_shader, 1, &start, nullptr);
+  glCompileShader(m_fragment_shader);
 
-  program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
-  //glBindFragDataLocation(program, 0, "fragcolor");
-  glLinkProgram(program);
+  m_program = glCreateProgram();
+  glAttachShader(m_program, m_vertex_shader);
+  glAttachShader(m_program, m_fragment_shader);
+  glLinkProgram(m_program);
 
   /* Now, that we have the program, query location of shader variables */
-  u_PVM_location = glGetUniformLocation(program, "PVM");
-  a_position_loc = glGetAttribLocation(program, "Position");
-  a_color_loc = glGetAttribLocation(program, "Color");
+  m_u_PVM_location = glGetUniformLocation(m_program, "PVM");
+  m_a_position_loc = glGetAttribLocation(m_program, "Position");
+  m_a_color_loc = glGetAttribLocation(m_program, "Color");
 
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
   //Initialize the trackball object
   int width;
   int height;
-  glfwGetWindowSize(window, &width, &height);
-  trackball = Trackball(width, height, 0.8f);
-  mouse_drag = false;
+  glfwGetWindowSize(m_window, &width, &height);
+  m_trackball = Trackball(width, height, 0.8f);
+  m_mouse_drag = false;
   //Initialize some basic rendering state
   glEnable(GL_DEPTH_TEST);
   //Dark gray background color
   glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
 }
 
-void create_primitives_and_send_to_gpu() {
+void OpenGLApplication::create_primitives_and_send_to_gpu() {
   //Create primitives
   struct Vertex {
     glm::vec3 position;
@@ -212,24 +236,24 @@ void create_primitives_and_send_to_gpu() {
   indices.push_back(2u);
   indices.push_back(0u);
 
-  nTriangles = indices.size() / 3;
+  m_nTriangles = indices.size() / 3;
 
   //Create the vertex buffer objects and VAO
   GLuint vbo;
   GLuint indexBuffer;
-  glGenVertexArrays(1, &vao);
+  glGenVertexArrays(1, &m_vao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &indexBuffer);
   // Bind the vao this need to be done before anything
-  glBindVertexArray(vao);
+  glBindVertexArray(m_vao);
   //Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-  glEnableVertexAttribArray(a_position_loc);
-  glVertexAttribPointer(a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_position_loc);
+  glVertexAttribPointer(m_a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         OFFSET_OF(Vertex, position));
-  glEnableVertexAttribArray(a_color_loc);
-  glVertexAttribPointer(a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_color_loc);
+  glVertexAttribPointer(m_a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, color));
   //Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -244,9 +268,9 @@ void create_primitives_and_send_to_gpu() {
   indices.clear();
 }
 
-void render() {
+void OpenGLApplication::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(program);
+  glUseProgram(m_program);
   /************************************************************************/
   /* Calculate  Model View Projection Matrices                            */
   /************************************************************************/
@@ -262,42 +286,45 @@ void render() {
   glm::vec3 camera_eye = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::mat4 Cam_Init_Pos = glm::lookAt(camera_position, camera_eye, camera_up);
   // Use trackball to get a rotation applied to the camera's initial pose
-  glm::mat4 V = Cam_Init_Pos * trackball.getRotation();
+  glm::mat4 V = Cam_Init_Pos * m_trackball.getRotation();
   //Projection
   int width;
   int height;
-  glfwGetWindowSize(window, &width, &height);
+  glfwGetWindowSize(m_window, &width, &height);
   GLfloat aspect = float(width) / float(height);
   // zoom in and out is controlled with the fovy
-  GLfloat fovy = TAU / 8.0f + zoom_level * (TAU / 50.0f);
+  GLfloat fovy = TAU / 8.0f + m_zoom_level * (TAU / 50.0f);
   GLfloat zNear = 1.0f;
   GLfloat zFar = 5.0f;
   glm::mat4 P = glm::perspective(fovy, aspect, zNear, zFar);
   /************************************************************************/
   /* Send uniform values to shader                                        */
   /************************************************************************/
-  if (u_PVM_location != -1) {
-    glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
+  if (m_u_PVM_location != -1) {
+    glUniformMatrix4fv(m_u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
-  glBindVertexArray(vao);
+  glBindVertexArray(m_vao);
   /* Draw */
   const int start_index = 0; //In location corresponding the index array
-  glDrawElements(GL_TRIANGLES, 3 * nTriangles, GL_UNSIGNED_SHORT,
+  glDrawElements(GL_TRIANGLES, 3 * m_nTriangles, GL_UNSIGNED_SHORT,
                  BUFFER_OFFSET(start_index * sizeof(unsigned short)));
   //Unbind and clean
   glBindVertexArray(0);
   glUseProgram(0);
 }
 
-void register_glfw_callbacks() {
-  glfwSetWindowSizeCallback(window, resize_callback);
-  glfwSetKeyCallback(window, key_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
-  glfwSetCursorPosCallback(window, cursor_position_callback);
-  glfwSetScrollCallback(window, scroll_callback);
+void OpenGLApplication::register_glfw_callbacks() {
+  // Associate the class instance so, it can be access from
+  // inside the static callback functions
+  glfwSetWindowUserPointer(m_window, static_cast<void*>(this));
+  glfwSetWindowSizeCallback(m_window, resize_callback);
+  glfwSetKeyCallback(m_window, key_callback);
+  glfwSetMouseButtonCallback(m_window, mouse_button_callback);
+  glfwSetCursorPosCallback(m_window, cursor_position_callback);
+  glfwSetScrollCallback(m_window, scroll_callback);
 }
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
@@ -308,17 +335,18 @@ void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int 
 
 void resize_callback(GLFWwindow* windowPtr, int new_window_width, int new_window_height) {
   glViewport(0, 0, new_window_width, new_window_height);
-  trackball.setWindowSize(new_window_width, new_window_height);
+  auto* app = static_cast<OpenGLApplication*>(glfwGetWindowUserPointer(windowPtr));
+  app->m_trackball.setWindowSize(new_window_width, new_window_height);
 }
 
 void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
-
+  auto* app = static_cast<OpenGLApplication*>(glfwGetWindowUserPointer(windowPtr));
   if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-    mouse_drag = true;
+    app->m_mouse_drag = true;
     double mouse_x;
     double mouse_y;
     glfwGetCursorPos(windowPtr, &mouse_x, &mouse_y);
-    trackball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
+    app->m_trackball.startDrag(glm::ivec2(int(mouse_x), int(mouse_y)));
     //These options are provided by GLFW designed for this kind of use case
     //However, I find them more confussing than helping. (Un)comment to test
     //glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -326,8 +354,8 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
     //  glfwSetInputMode(windowPtr, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     //}
   } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-    trackball.endDrag();
-    mouse_drag = false;
+	app->m_trackball.endDrag();
+	app->m_mouse_drag = false;
     //These options are provided by GLFW designed for this kind of use case
     //However, I find them more confussing than helping. (Un)comment to test
     //glfwSetInputMode(windowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -338,14 +366,16 @@ void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mo
 }
 
 void cursor_position_callback(GLFWwindow* windowPtr, double mouse_x, double mouse_y) {
-  if (mouse_drag) {
-    trackball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
+  auto* app = static_cast<OpenGLApplication*>(glfwGetWindowUserPointer(windowPtr));
+  if (app->m_mouse_drag) {
+	  app->m_trackball.drag(glm::ivec2(int(mouse_x), int(mouse_y)));
   }
 }
 
 void scroll_callback(GLFWwindow* windowPtr, double x_offset, double y_offset) {
-  zoom_level += int(y_offset);
-  zoom_level = glm::clamp(zoom_level, -5, 5);
+  auto* app = static_cast<OpenGLApplication*>(glfwGetWindowUserPointer(windowPtr));
+  app->m_zoom_level += int(y_offset);
+  app->m_zoom_level = glm::clamp(app->m_zoom_level, -5, 5);
 }
 
 void glfw_error_callback(int error, const char* description) {
@@ -354,14 +384,14 @@ void glfw_error_callback(int error, const char* description) {
   cerr << "GLFW Error: " << description << endl;
 }
 
-void free_resources() {
+void OpenGLApplication::free_resources() {
   /* Delete OpenGL program */
-  glDetachShader(program, vertex_shader);
-  glDetachShader(program, fragment_shader);
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-  glDeleteProgram(program);
+  glDetachShader(m_program, m_vertex_shader);
+  glDetachShader(m_program, m_fragment_shader);
+  glDeleteShader(m_vertex_shader);
+  glDeleteShader(m_fragment_shader);
+  glDeleteProgram(m_program);
   //Window and context destruction
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(m_window);
 }
 

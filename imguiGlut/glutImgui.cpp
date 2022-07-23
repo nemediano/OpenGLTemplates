@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -20,34 +21,7 @@
 // Define helpful macros for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 #define OFFSET_OF(type, member) ((GLvoid*)(offsetof(type, member)))
-// freeglut window id
-GLint window = 0;
-// Location for shader variables
-GLint u_PVM_location = -1;
-GLint a_position_loc = -1;
-GLint a_color_loc = -1;
-// OpenGL program handlers
-GLuint vertex_shader = 0;
-GLuint fragment_shader = 0;
-GLuint program = 0;
-//Global variables for the program logic
-int nTriangles = 0;
-bool rotating = false;
-float current_angle = 0.0f;
-int last_time = 0;
-bool mouse_drag = false;
-std::string context_info;
-// Manage the Vertex Buffer Objects using a Vertex Array Object
-GLuint vao;
-// Function declarations
-void init_freeglut();
-void load_OpenGL();
-void init_program();
-void create_primitives_and_send_to_gpu();
-void setup_menu();
-void create_menu();
-void create_glut_callbacks();
-void exit_glut();
+
 //Glut callback functions
 void display();
 void idle();
@@ -58,14 +32,49 @@ void mouse_dragging(int mouse_x, int mouse_y);
 // OpenGL's debug logger callback (needs context 4.3 or above)
 void opengl_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                            GLsizei length, const GLchar *message, const void *userParam);
-// Print shader compilation errors
-void print_shader_log(GLint const shader);
-// get infor from the used libraries versions
-std::string enviroment_info();
 
-int main(int argc, char* argv[]) {
-  glutInit(&argc, argv);
-  init_freeglut();
+class OpenGLApplication {
+public:
+	OpenGLApplication(){};
+	void run(int argc, char* argv[]);
+	void create_menu();
+	//Global variables for the program logic
+	int m_nTriangles = 0;
+	bool m_rotating = false;
+	float m_current_angle = 0.0f;
+	int m_last_time = 0;
+	bool m_mouse_drag = false;
+	std::string m_context_info;
+	// Manage the Vertex Buffer Objects using a Vertex Array Object
+	GLuint m_vao = 0;
+	GLuint m_program = 0;
+	GLint m_u_PVM_location = -1;
+private:
+	// freeglut window id
+	GLint m_window = 0;
+	// Location for shader variables
+	GLint m_a_position_loc = -1;
+	GLint m_a_color_loc = -1;
+	// OpenGL program handlers
+	GLuint m_vertex_shader = 0;
+	GLuint m_fragment_shader = 0;
+
+	// Function declarations
+	void init_freeglut(int argc, char* argv[]);
+	void load_OpenGL();
+	void init_program();
+	void create_primitives_and_send_to_gpu();
+	void setup_menu();
+	void create_glut_callbacks();
+	// Print shader compilation errors
+	void print_shader_log(GLint const shader);
+	// get info from the used libraries versions
+	std::string enviroment_info();
+	void exit_glut();
+};
+
+void OpenGLApplication::run(int argc, char* argv[]) {
+  init_freeglut(argc, argv);
   load_OpenGL();
   setup_menu();
   init_program();
@@ -73,10 +82,22 @@ int main(int argc, char* argv[]) {
   create_glut_callbacks();
   glutMainLoop();
 
+  exit_glut();
+}
+
+int main(int argc, char* argv[]) {
+  OpenGLApplication app;
+  try {
+	app.run(argc, argv);
+  } catch (const std::exception& e) {
+    std::cerr << e.what() << std::endl;
+	return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
 
-void setup_menu() {
+void OpenGLApplication::setup_menu() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -93,7 +114,7 @@ void setup_menu() {
 
 }
 
-void create_menu() {
+void OpenGLApplication::create_menu() {
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGLUT_NewFrame();
@@ -101,11 +122,11 @@ void create_menu() {
   // Draw the menu
   ImGui::Begin("Triangle's basic menu");
     ImGui::Text("Options");
-    if (ImGui::Checkbox("Rotate", &rotating)) { //Imgui's controls return true on interaction
-      current_angle = 0.0f;
+    if (ImGui::Checkbox("Rotate", &m_rotating)) { //Imgui's controls return true on interaction
+    	m_current_angle = 0.0f;
     }
     if (ImGui::CollapsingHeader("Enviroment info:")) {
-      ImGui::Text("%s", context_info.c_str());
+      ImGui::Text("%s", m_context_info.c_str());
     }
     if (ImGui::CollapsingHeader("Application stats")) {
       ImGui::Text("Average frame: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
@@ -114,17 +135,18 @@ void create_menu() {
   ImGui::End();
 }
 
-void init_freeglut() {
+void OpenGLApplication::init_freeglut(int argc, char* argv[]) {
+  glutInit(&argc, argv);
   glutInitContextVersion(4, 6);
   glutInitContextProfile(GLUT_CORE_PROFILE);
   glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
   glutSetOption(GLUT_MULTISAMPLE, 4);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
   glutInitWindowSize(900, 600);
-  window = glutCreateWindow("OpenGL Menu sample - freeglut");
+  m_window = glutCreateWindow("OpenGL Menu sample - freeglut");
 }
 
-void init_program() {
+void OpenGLApplication::init_program() {
   /************************************************************************/
   /*                   OpenGL program (pipeline) creation                 */
   /************************************************************************/
@@ -161,40 +183,40 @@ void init_program() {
     }
   )GLSL";
 
-  vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  m_vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   const char* start = &vertex_shader_src[0];
-  glShaderSource(vertex_shader, 1, &start, nullptr);
+  glShaderSource(m_vertex_shader, 1, &start, nullptr);
 
-  fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  m_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   start = &fragment_shader_src[0];
-  glShaderSource(fragment_shader, 1, &start, nullptr);
+  glShaderSource(m_fragment_shader, 1, &start, nullptr);
 
   int status{0};
-  glCompileShader(vertex_shader);
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
+  glCompileShader(m_vertex_shader);
+  glGetShaderiv(m_vertex_shader, GL_COMPILE_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "Vertex shader was not compiled!!" << endl;
-    print_shader_log(vertex_shader);
+    print_shader_log(m_vertex_shader);
   }
-  glCompileShader(fragment_shader);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &status);
+  glCompileShader(m_fragment_shader);
+  glGetShaderiv(m_fragment_shader, GL_COMPILE_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "Fragment shader was not compiled!!" << endl;
-    print_shader_log(fragment_shader);
+    print_shader_log(m_fragment_shader);
   }
-  program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
+  m_program = glCreateProgram();
+  glAttachShader(m_program, m_vertex_shader);
+  glAttachShader(m_program, m_fragment_shader);
   //glBindFragDataLocation(program, 0, "fragcolor");
-  glLinkProgram(program);
-  glGetProgramiv(program, GL_LINK_STATUS, &status);
+  glLinkProgram(m_program);
+  glGetProgramiv(m_program, GL_LINK_STATUS, &status);
   if (status == GL_FALSE) {
     cerr << "OpenGL program was not linked!!" << endl;
   }
   /* Now, that we have the program, query location of shader variables */
-  u_PVM_location = glGetUniformLocation(program, "PVM");
-  a_position_loc = glGetAttribLocation(program, "Position");
-  a_color_loc = glGetAttribLocation(program, "Color");
+  m_u_PVM_location = glGetUniformLocation(m_program, "PVM");
+  m_a_position_loc = glGetAttribLocation(m_program, "Position");
+  m_a_color_loc = glGetAttribLocation(m_program, "Color");
   /* Then, create primitives and send data to GPU */
   create_primitives_and_send_to_gpu();
   //Initialize some basic rendering state
@@ -203,7 +225,7 @@ void init_program() {
   glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
 }
 
-void load_OpenGL() {
+void OpenGLApplication::load_OpenGL() {
   using std::cout;
   using std::cerr;
   using std::endl;
@@ -212,9 +234,11 @@ void load_OpenGL() {
   /************************************************************************/
   GLenum err = glewInit();
   if (GLEW_OK != err) {
-    cerr << "Glew initialization failed: " << glewGetErrorString(err) << endl;
+	std::stringstream ss;
+	ss << "Glew initialization failed: " << glewGetErrorString(err);
+	throw std::runtime_error(ss.str());
   }
-  context_info = enviroment_info();
+  m_context_info = enviroment_info();
   /************************************************************************/
   /*                    OpenGL Debug context                              */
   /************************************************************************/
@@ -231,7 +255,7 @@ void load_OpenGL() {
   }
 }
 
-void create_primitives_and_send_to_gpu() {
+void OpenGLApplication::create_primitives_and_send_to_gpu() {
   //Create primitives
   struct Vertex {
     glm::vec3 position;
@@ -248,24 +272,24 @@ void create_primitives_and_send_to_gpu() {
   indices.push_back(1);
   indices.push_back(2);
 
-  nTriangles = indices.size() / 3;
+  m_nTriangles = indices.size() / 3;
 
   //Create the vertex buffer objects and VAO
   GLuint vbo;
   GLuint indexBuffer;
-  glGenVertexArrays(1, &vao);
+  glGenVertexArrays(1, &m_vao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &indexBuffer);
   // Bind the vao this need to be done before anything
-  glBindVertexArray(vao);
+  glBindVertexArray(m_vao);
   //Send data to GPU: first send the vertices
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-  glEnableVertexAttribArray(a_position_loc);
-  glVertexAttribPointer(a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_position_loc);
+  glVertexAttribPointer(m_a_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         OFFSET_OF(Vertex, position));
-  glEnableVertexAttribArray(a_color_loc);
-  glVertexAttribPointer(a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glEnableVertexAttribArray(m_a_color_loc);
+  glVertexAttribPointer(m_a_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           OFFSET_OF(Vertex, color));
   //Now, the indices
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -280,7 +304,8 @@ void create_primitives_and_send_to_gpu() {
   indices.clear();
 }
 
-void create_glut_callbacks() {
+void OpenGLApplication::create_glut_callbacks() {
+  glutSetWindowData(static_cast<void*>(this));
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutKeyboardFunc(keyboard);
@@ -290,17 +315,18 @@ void create_glut_callbacks() {
 }
 
 void idle() {
+  auto* app = static_cast<OpenGLApplication*>(glutGetWindowData());
   int time = glutGet(GLUT_ELAPSED_TIME);
-  int elapsed = time - last_time;
+  int elapsed = time - app->m_last_time;
   float delta_seconds = 0.001f * elapsed;
-  last_time = time;
+  app->m_last_time = time;
   /*If rotating update angle*/
-  if (rotating) {
+  if (app->m_rotating) {
     const float speed = 180.0f; //In degrees per second
-    current_angle += delta_seconds * speed;
-    if (current_angle > 360.0f) {
-      int quotient = int(current_angle / 360.0f);
-      current_angle -= quotient * 360.0f;
+    app->m_current_angle += delta_seconds * speed;
+    if (app->m_current_angle > 360.0f) {
+      int quotient = int(app->m_current_angle / 360.0f);
+      app->m_current_angle -= quotient * 360.0f;
     }
   }
   glutPostRedisplay();
@@ -323,12 +349,13 @@ void mouse_button(int button, int state, int mouse_x, int mouse_y) {
     return;
   }
   //The event happen outside the GUI, your application should try to handle it
+  auto* app = static_cast<OpenGLApplication*>(glutGetWindowData());
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     //std::cout << "Click in!" << std::endl;
-    mouse_drag = true;
+	app->m_mouse_drag = true;
   } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
     //std::cout << "Click out!" << std::endl;
-    mouse_drag = false;
+	app->m_mouse_drag = false;
   }
 }
 
@@ -355,22 +382,24 @@ void keyboard(unsigned char key, int mouse_x, int mouse_y) {
     return;
   }
   //The event happen outside the GUI, your application should try to handle it
+  auto* app = static_cast<OpenGLApplication*>(glutGetWindowData());
   switch(key) {
     case 27: //Esc key
-      exit_glut();
+    	glutLeaveMainLoop();
     break;
     case 'r':
     case 'R': {
-      rotating = !rotating;
-      current_angle = 0.0f;
+      app->m_rotating = !app->m_rotating;
+      app->m_current_angle = 0.0f;
     } break;
   }
   glutPostRedisplay();
 }
 
 void display() {
+  auto* app = static_cast<OpenGLApplication*>(glutGetWindowData());
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(program);
+  glUseProgram(app->m_program);
   /************************************************************************/
   /* Calculate  Model View Projection Matrices                            */
   /************************************************************************/
@@ -380,8 +409,8 @@ void display() {
   glm::mat4 I(1.0f);
   //Model
   glm::mat4 M = I;
-  if (rotating) {
-    M = glm::rotate(M, glm::radians(current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
+  if (app->m_rotating) {
+    M = glm::rotate(M, glm::radians(app->m_current_angle), glm::vec3(0.0f, 1.0f, 0.0f));
   }
   //View
   glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -397,43 +426,42 @@ void display() {
   /************************************************************************/
   /* Send uniform values to shader                                        */
   /************************************************************************/
-  if (u_PVM_location != -1) {
-    glUniformMatrix4fv(u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
+  if (app->m_u_PVM_location != -1) {
+    glUniformMatrix4fv(app->m_u_PVM_location, 1, GL_FALSE, glm::value_ptr(P * V * M));
   }
   /************************************************************************/
   /* Bind buffer object and their corresponding attributes (use VAO)      */
   /************************************************************************/
-  glBindVertexArray(vao);
+  glBindVertexArray(app->m_vao);
   /* Draw */
   const int start_index = 0; //In location corresponding the index array
-  glDrawElements(GL_TRIANGLES, 3 * nTriangles, GL_UNSIGNED_SHORT,
+  glDrawElements(GL_TRIANGLES, 3 * app->m_nTriangles, GL_UNSIGNED_SHORT,
                  BUFFER_OFFSET(start_index * sizeof(unsigned short)));
   //Unbind and clean
   glBindVertexArray(0);
   glUseProgram(0);
 
   /* Render menu after the geometry of our actual app*/
-  create_menu();
+  app->create_menu();
   ImGui::Render(); // Prepare to render our menu, before clearing buffers
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
   glutSwapBuffers();
 }
 
-void exit_glut() {
+void OpenGLApplication::exit_glut() {
   /* Release imgui resources */
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGLUT_Shutdown();
   ImGui::DestroyContext();
   /* Delete OpenGL program */
-  glDetachShader(program, vertex_shader);
-  glDetachShader(program, fragment_shader);
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-  glDeleteProgram(program);
+  glDetachShader(m_program, m_vertex_shader);
+  glDetachShader(m_program, m_fragment_shader);
+  glDeleteShader(m_vertex_shader);
+  glDeleteShader(m_fragment_shader);
+  glDeleteProgram(m_program);
   /* Delete window (freeglut) */
-  glutDestroyWindow(window);
-  exit(EXIT_SUCCESS);
+  glutDestroyWindow(m_window);
 }
 
 
@@ -492,7 +520,7 @@ void opengl_error_callback(GLenum source,
   cout << msg << endl;
 }
 
-void print_shader_log(GLint const shader) {
+void OpenGLApplication::print_shader_log(GLint const shader) {
   using std::cerr;
   using std::endl;
 
@@ -510,7 +538,7 @@ void print_shader_log(GLint const shader) {
   }
 }
 
-std::string enviroment_info() {
+std::string OpenGLApplication::enviroment_info() {
   using std::endl;
   std::stringstream info;
 
